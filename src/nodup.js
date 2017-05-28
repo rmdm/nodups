@@ -1,24 +1,68 @@
 'use strict'
 
-export default function (array) {
+export default function (array, options) {
 
     if (notAnArray(array)) {
         return []
     }
 
-    return getUniq(array)
+    return getUniq(array, options)
 }
 
 function notAnArray (array) {
     return !Array.isArray(array)
 }
 
-function getUniq (array) {
+function getUniq (array, options = {}) {
 
-    const result = []
+    let result
+
+    if (options.sorted) {
+        result = getSortedUniq(array, options)
+    } else {
+        result = getRandomUniq(array, options)
+    }
+
+    if (options.inplace) {
+        array.length = 0
+        array.push.apply(array, result)
+        result = array
+    }
+
+    return result
+}
+
+function getSortedUniq (array, options) {
+
+    let result = []
+
+    if (!array.length) {
+        return result
+    }
+
+    let last = array[0]
+
+    result.push(last)
+
+    for (let i = 1; i < array.length; i++) {
+
+        const el = array[i]
+
+        if (!compare(el, last, options)) {
+            result.push(el)
+            last = el
+        }
+    }
+
+    return result
+}
+
+function getRandomUniq (array, options) {
+
+    let result = []
 
     for (let el of array) {
-        if (notContains(result, el)) {
+        if (notContains(result, el, options)) {
             result.push(el)
         }
     }
@@ -26,10 +70,10 @@ function getUniq (array) {
     return result
 }
 
-function notContains (array, v) {
+function notContains (array, v, options) {
 
     for (let el of array) {
-        if (equals(el, v)) {
+        if (compare(el, v, options)) {
             return false
         }
     }
@@ -37,7 +81,24 @@ function notContains (array, v) {
     return true
 }
 
-function equals (a, b, visited_a, visited_b, basePath) {
+function compare (a, b, options) {
+
+    if (options.compare === '==') {
+        return a == b
+    }
+
+    if (options.compare === '===') {
+        return a === b
+    }
+
+    if (typeof options.compare === 'function') {
+        return options.compare(a, b)
+    }
+
+    return equals(a, b, options.strict)
+}
+
+function equals (a, b, strict, visited_a, visited_b, basePath) {
 
     visited_a = makeVisited(visited_a)
     visited_b = makeVisited(visited_b)
@@ -55,17 +116,17 @@ function equals (a, b, visited_a, visited_b, basePath) {
     visited_a.add(a, basePath)
     visited_b.add(b, basePath)
 
-    if (typeof a !== typeof b) {
-        return false
-    }
-
-    if (typeof a !== 'object' || !a || !b) {
+    if (!isObject(a) && !isObject(b)) {
 
         if (isNaN(a) && isNaN(b)) {
             return true
         }
 
-        return a === b
+        return strict === false ? a == b : a === b
+    }
+
+    if (!isObject(a) || !isObject(b)) {
+        return false
     }
 
     if (Object.keys(a).length !== Object.keys(b).length) {
@@ -81,7 +142,7 @@ function equals (a, b, visited_a, visited_b, basePath) {
 
             const keyPath = basePath.concat(key)
 
-            if (!equals(a[key], b[key], visited_a, visited_b, keyPath)) {
+            if (!equals(a[key], b[key], strict, visited_a, visited_b, keyPath)) {
                 return false
             }
         }

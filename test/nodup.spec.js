@@ -58,7 +58,7 @@ describe('nodup', function () {
         ])
     })
 
-    it('compares primitive values of the elements with strict equals by default', function () {
+    it('compares primitive values of the elements with strict equals', function () {
 
         const array = [
             { a: 1 },
@@ -202,5 +202,166 @@ describe('nodup', function () {
         const result = nodup(array)
 
         assert.deepStrictEqual(result, [ a, d, e, f ])
+    })
+
+    context('with "inplace" option', function () {
+
+        it('returns passed array if it has no dups', function () {
+
+            const array = [ 1, 2, 3, 4, 5 ]
+
+            const result = nodup(array, { inplace: true })
+
+            assert.deepStrictEqual(result, [ 1, 2, 3, 4, 5 ])
+            assert.equal(result, array)
+        })
+
+        it('returns passed array with dups removed', function () {
+
+            const array = [ 1, 4, 2, 5, 3, 4, 5, 1 ]
+
+            const result = nodup(array, { inplace: true })
+
+            assert.deepStrictEqual(result, [ 1, 4, 2, 5, 3 ])
+            assert.equal(result, array)
+        })
+    })
+
+    context('with "sorted" option', function () {
+
+        it('returns sorted array with dups removed', function () {
+
+            const array = [ 1, 1, 2, 3, 4, 4, 5, 5, 5 ]
+
+            const result = nodup(array, { sorted: true })
+
+            assert.deepStrictEqual(result, [ 1, 2, 3, 4, 5 ])
+        })
+
+        it('returns not sorted array with not all dups removed', function () {
+
+            const array = [ 1, 1, 4, 2, 3, 4, 5, 5, 5 ]
+
+            const result = nodup(array, { sorted: true })
+
+            assert.deepStrictEqual(result, [ 1, 4, 2, 3, 4, 5 ])
+        })
+    })
+
+    context('with "strict" option set to false', function () {
+
+        it('compares primitive values of the elements with not strict equals', function () {
+
+            const array = [
+                { a: 1 },
+                { a: '1' },
+            ]
+
+            const result = nodup(array, { strict: false })
+
+            assert.deepStrictEqual(result, [
+                { a: 1 },
+            ])
+        })
+
+        it('returns not strict unique array of mixed values', function () {
+
+            const array = [
+                { a: 1 },
+                4,
+                { a: [ 1 ] },
+                3,
+                { a: [ { a: 1, b: 5 } ]},
+                { a: [ { a: 1, b: 7 } ]},
+                4,
+                { a: [ { a: 1, b: 5 } ]},
+                { a: [ { a: 1, b: 5, c: 10 } ]},
+                5,
+                '5',
+                false,
+                1,
+                true,
+                '',
+                null,
+                undefined,
+                0,
+                NaN,
+                NaN,
+            ]
+
+            const result = nodup(array, { strict: false })
+
+            assert.deepStrictEqual(result, [
+                { a: 1 },
+                4,
+                { a: [ 1 ] },
+                3,
+                { a: [ { a: 1, b: 5 } ]},
+                { a: [ { a: 1, b: 7 } ]},
+                { a: [ { a: 1, b: 5, c: 10 } ]},
+                5,
+                false,
+                1,
+                null,
+                custom(isNaN),
+            ])
+        })
+    })
+
+    context('with "compare" option', function () {
+
+        it('compares by value strictly', function () {
+
+            const array = [
+                { a: 1 },
+                { a: 1 },
+                1,
+                2,
+                1,
+                '1',
+            ]
+
+            const result = nodup(array, { compare: '===' })
+
+            assert.deepStrictEqual(result, [
+                { a: 1 },
+                { a: 1 },
+                1,
+                2,
+                '1',
+            ])
+        })
+
+        it('compares by value non-strictly', function () {
+
+            const array = [
+                { a: 1 },
+                { a: 1 },
+                1,
+                2,
+                1,
+                '1',
+            ]
+
+            const result = nodup(array, { compare: '==' })
+
+            assert.deepStrictEqual(result, [
+                { a: 1 },
+                { a: 1 },
+                1,
+                2,
+            ])
+        })
+
+        it('defines custom comparator function', function () {
+
+            const array = [ 5, 7, 11, 17, 19, 21, 45, 99 ]
+
+            const customCompare = (a, b) => ~~( a / 10 ) === ~~( b / 10 )
+
+            const result = nodup(array, { compare: customCompare })
+
+            assert.deepStrictEqual(result, [ 5, 11, 21, 45, 99 ])
+        })
     })
 })
