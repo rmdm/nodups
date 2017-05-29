@@ -94,6 +94,31 @@ describe('nodup', function () {
         assert.deepStrictEqual(result, [ a, c, d ])
     })
 
+    it('handles structs with less trivial circular refs', function () {
+
+            const a1 = {}
+            a1.ref = a1
+
+            const b1 = {}
+            b1.ref = b1
+
+            const a = {
+                ref: a1,
+            }
+
+            const b = {
+                ref: {
+                    ref: b1,
+                },
+            }
+
+            const array = [ a, b ]
+
+            const result = nodup(array)
+
+            assert.deepStrictEqual(result, [ a, b ])
+    })
+
     it('handles structs with several refs to the same object', function () {
 
         const a1 = { v: 5 }
