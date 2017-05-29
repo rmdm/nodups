@@ -4,7 +4,7 @@
   "description": "No dups, no doubts.",
   "main": "index.js",
   "scripts": {
-    "test": "npm run lint && npm run cover && npm run karma",
+    "test": "npm run cover && npm run karma",
     "mocha": "cross-env NODE_ENV=test _mocha --require babel-register --recursive test",
     "karma": "karma start karma.conf.js",
     "cover": "nyc npm run mocha",

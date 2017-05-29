@@ -364,4 +364,26 @@ describe('nodup', function () {
             assert.deepStrictEqual(result, [ 5, 11, 21, 45, 99 ])
         })
     })
+
+    context('with "pick" option', function () {
+
+        it('compares object elements only by "pick"ed properties', function () {
+
+            const array = [
+                { a: 5, b: 10 },
+                { a: 5, b: 11 },
+                { b: 12 },
+                5,
+                5
+            ]
+
+            const result = nodup(array, { pick: [ 'a' ] })
+
+            assert.deepStrictEqual(result, [
+                { a: 5, b: 10 },
+                { b: 12 },
+                5
+            ])
+        })
+    })
 })

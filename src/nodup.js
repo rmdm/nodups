@@ -9,10 +9,6 @@ export default function (array, options) {
     return getUniq(array, options)
 }
 
-function notAnArray (array) {
-    return !Array.isArray(array)
-}
-
 function getUniq (array, options = {}) {
 
     let result
@@ -95,7 +91,60 @@ function compare (a, b, options) {
         return options.compare(a, b)
     }
 
+    if (options.pick) {
+        a = pick(a, options.pick)
+        b = pick(b, options.pick)
+    }
+
     return equals(a, b, options.strict)
+}
+
+function pick (v, props) {
+
+    if (!isObject(v) || notAnArray(props)) {
+        return v
+    }
+
+    const result = getBaseObject(v)
+
+    for (let keys of props) {
+
+        if (typeof keys === 'string') {
+            keys = keys.split('.')
+        }
+
+        if (notAnArray(keys)) { continue }
+
+        copyProperty(v, result, keys)
+    }
+
+    return result
+}
+
+function copyProperty (src, dst, keys) {
+
+    const rootKey = keys[0]
+
+    if (typeof rootKey !== 'string' || !hasOwn(src, rootKey)) {
+        return
+    }
+
+    const intermediate = getBaseObject(src[rootKey])
+
+    let pointer = intermediate
+
+    for (let i = 1; i <= keys.length; i++) {
+
+        let key = keys[i]
+
+        if (typeof key !== 'string') {
+            return
+        }
+        pointer[key] = getBaseObject
+        pointer = pointer[key]
+    }
+
+    dst[rootKey] = intermediate
 }
 
 function equals (a, b, strict, visited_a, visited_b, basePath) {
@@ -251,10 +300,23 @@ function makeVisited (visited) {
     return visited
 }
 
+function notAnArray (array) {
+    return !Array.isArray(array)
+}
+
 function hasOwn (obj, key) {
     return isObject(obj) && obj.hasOwnProperty(key)
 }
 
 function isObject (obj) {
     return obj && typeof obj === 'object'
+}
+
+function getBaseObject (obj) {
+
+    if (!isObject(obj)) { return obj }
+
+    return Array.isArray(obj)
+        ? []
+        : Object.create(Object.getPrototypeOf(obj))
 }
