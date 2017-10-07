@@ -398,8 +398,11 @@ describe('nodup', function () {
                 { a: 5, b: 10 },
                 { a: 5, b: 11 },
                 { b: 12 },
+                { b: 15 },
+                { c: 10 },
                 5,
-                5
+                5,
+                7
             ]
 
             const result = nodup(array, { pick: [ 'a' ] })
@@ -407,7 +410,8 @@ describe('nodup', function () {
             assert.deepStrictEqual(result, [
                 { a: 5, b: 10 },
                 { b: 12 },
-                5
+                5,
+                7
             ])
         })
     })

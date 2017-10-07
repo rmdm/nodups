@@ -101,21 +101,27 @@ function compare (a, b, options) {
 
 function pick (v, props) {
 
-    if (!isObject(v) || notAnArray(props)) {
+    if (!isObject(v)) {
         return v
     }
 
-    const result = getBaseObject(v)
+    if (typeof props === 'string'){
+        props = [ props ]
+    }
+
+    if (notAnArray(props)) {
+        throw new Error('"pick" keys should be strings.')
+    }
+
+    const result = {}
 
     for (let keys of props) {
 
-        if (typeof keys === 'string') {
-            keys = keys.split('.')
+        if (typeof keys !== 'string') {
+            throw new Error('"pick" keys should be strings.')
         }
 
-        if (notAnArray(keys)) { continue }
-
-        copyProperty(v, result, keys)
+        copyProperty(v, result, keys.split('.'))
     }
 
     return result
@@ -123,28 +129,27 @@ function pick (v, props) {
 
 function copyProperty (src, dst, keys) {
 
-    const rootKey = keys[0]
+    let pointer = src
 
-    if (typeof rootKey !== 'string' || !hasOwn(src, rootKey)) {
-        return
-    }
+    const len = keys.length
+    const lastIndex = len - 1
 
-    const intermediate = getBaseObject(src[rootKey])
+    for (let i = 0; i < len; i++) {
 
-    let pointer = intermediate
+        const key = keys[i]
 
-    for (let i = 1; i <= keys.length; i++) {
-
-        let key = keys[i]
-
-        if (typeof key !== 'string') {
+        if (!hasOwn(pointer, key)) {
             return
         }
-        pointer[key] = getBaseObject
-        pointer = pointer[key]
-    }
 
-    dst[rootKey] = intermediate
+        if (isObject(pointer[key]) && i < lastIndex) {
+            dst = dst[key] = {}
+            pointer = pointer[key]
+        } else {
+            dst[key] = pointer[key]
+            return
+        }
+    }
 }
 
 function equals (a, b, strict, visited_a, visited_b, basePath) {
@@ -310,13 +315,4 @@ function hasOwn (obj, key) {
 
 function isObject (obj) {
     return obj && typeof obj === 'object'
-}
-
-function getBaseObject (obj) {
-
-    if (!isObject(obj)) { return obj }
-
-    return Array.isArray(obj)
-        ? []
-        : Object.create(Object.getPrototypeOf(obj))
 }
