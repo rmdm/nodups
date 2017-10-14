@@ -116,7 +116,7 @@ describe('nodup', function () {
 
             const result = nodup(array)
 
-            assert.deepStrictEqual(result, [ a, b ])
+            assert.deepStrictEqual(result, [ a ])
     })
 
     it('handles structs with several refs to the same object', function () {
@@ -229,7 +229,7 @@ describe('nodup', function () {
         assert.deepStrictEqual(result, [ a, d, e, f ])
     })
 
-    context('with "inplace" option', function () {
+    context('"inplace" option', function () {
 
         it('returns passed array if it has no dups', function () {
 
@@ -252,7 +252,7 @@ describe('nodup', function () {
         })
     })
 
-    context('with "sorted" option', function () {
+    context('"sorted" option', function () {
 
         it('returns sorted array with dups removed', function () {
 
@@ -273,7 +273,7 @@ describe('nodup', function () {
         })
     })
 
-    context('with "strict" option set to false', function () {
+    context('"strict" option set to false', function () {
 
         it('compares primitive values of the elements with not strict equals', function () {
 
@@ -333,7 +333,7 @@ describe('nodup', function () {
         })
     })
 
-    context('with "compare" option', function () {
+    context('"compare" option', function () {
 
         it('compares by value strictly', function () {
 
@@ -390,7 +390,7 @@ describe('nodup', function () {
         })
     })
 
-    context('with "pick" option', function () {
+    context('"pick" option', function () {
 
         it('compares object elements only by "pick"ed properties', function () {
 
@@ -412,6 +412,93 @@ describe('nodup', function () {
                 { b: 12 },
                 5,
                 7
+            ])
+        })
+    })
+
+    context('"omit" option', function () {
+
+        it('compares object elements skipping "omit"ed properties', function () {
+
+            const array = [
+                { a: 5, b: 10 },
+                { a: 5, b: 11 },
+                { b: 12 },
+                { b: 15 },
+                { c: 10 },
+                5,
+                5,
+                7
+            ]
+
+            const result = nodup(array, { omit: [ 'b' ] })
+
+            assert.deepStrictEqual(result, [
+                { a: 5, b: 10 },
+                { b: 12 },
+                { c: 10 },
+                5,
+                7
+            ])
+        })
+    })
+
+    context('"onUnique" option', function () {
+
+        it('is called for every unique value with its duplicates, index in resulting array and the array itself', function () {
+
+            const array = [
+                { a: 5, b: 10 },
+                { a: 5, b: 11 },
+                { b: 12 },
+                { b: 15 },
+                { c: 10 },
+                5,
+                5,
+                7
+            ]
+
+            const calls = []
+
+            nodup(array, {
+                pick: [ 'a' ],
+                onUnique: function (unique, duplicates, index, array) {
+                    calls.push({ unique, duplicates, index, array })
+                },
+            })
+
+            const expectedResult = [
+                { a: 5, b: 10 },
+                { b: 12 },
+                5,
+                7
+            ]
+
+            assert.deepStrictEqual(calls, [
+                {
+                    unique: { a: 5, b: 10 },
+                    duplicates: [ { a: 5, b: 11 } ],
+                    index: 0,
+                    array: expectedResult,
+                },
+                {
+                    unique: { b: 12 },
+                    duplicates: [ { b: 15 }, { c: 10 } ],
+                    index: 1,
+                    array: expectedResult,
+                },
+                {
+                    unique: 5,
+                    duplicates: [ 5 ],
+                    index: 2,
+                    array: expectedResult,
+                },
+                {
+                    unique: 7,
+                    duplicates: [],
+                    index: 3,
+                    array: expectedResult,
+                },
             ])
         })
     })

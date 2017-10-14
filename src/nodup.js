@@ -1,5 +1,7 @@
 'use strict'
 
+const isEqualWith = require('lodash.isequalwith')
+
 export default function (array, options) {
 
     if (notAnArray(array)) {
@@ -11,18 +13,27 @@ export default function (array, options) {
 
 function getUniq (array, options = {}) {
 
-    let result
+    let noduped
 
     if (options.sorted) {
-        result = getSortedUniq(array, options)
+        noduped = getSortedUniq(array, options)
     } else {
-        result = getRandomUniq(array, options)
+        noduped = getRandomUniq(array, options)
     }
+
+    let result = noduped.array
 
     if (options.inplace) {
         array.length = 0
-        array.push.apply(array, result)
+        array.push.apply(array, noduped.array)
         result = array
+    }
+
+    if (typeof options.onUnique === 'function') {
+        for (let i = 0; i < result.length; i++) {
+            const el = result[i]
+            options.onUnique(el, noduped.duplicates.get(el), i, result)
+        }
     }
 
     return result
@@ -30,7 +41,7 @@ function getUniq (array, options = {}) {
 
 function getSortedUniq (array, options) {
 
-    let result = []
+    const result = [], duplicates = new Map()
 
     if (!array.length) {
         return result
@@ -39,42 +50,47 @@ function getSortedUniq (array, options) {
     let last = array[0]
 
     result.push(last)
+    duplicates.set(last, [])
 
     for (let i = 1; i < array.length; i++) {
 
         const el = array[i]
 
-        if (!compare(el, last, options)) {
+        if (compare(el, last, options)) {
+            duplicates.get(last).push(el)
+        } else {
             result.push(el)
+            duplicates.set(el, [])
             last = el
         }
     }
 
-    return result
+    return { array: result, duplicates: duplicates }
 }
 
 function getRandomUniq (array, options) {
 
-    let result = []
+    const result = [], duplicates = new Map()
 
     for (let el of array) {
-        if (notContains(result, el, options)) {
+
+        let hasNoDuplicates = true
+
+        for (let unique of result) {
+            if (compare(unique, el, options)) {
+                hasNoDuplicates = false
+                duplicates.get(unique).push(el)
+                break
+            }
+        }
+
+        if (hasNoDuplicates) {
             result.push(el)
+            duplicates.set(el, [])
         }
     }
 
-    return result
-}
-
-function notContains (array, v, options) {
-
-    for (let el of array) {
-        if (compare(el, v, options)) {
-            return false
-        }
-    }
-
-    return true
+    return { array: result, duplicates: duplicates }
 }
 
 function compare (a, b, options) {
@@ -96,6 +112,11 @@ function compare (a, b, options) {
         b = pick(b, options.pick)
     }
 
+    if (options.omit) {
+        a = omit(a, options.omit)
+        b = omit(b, options.omit)
+    }
+
     return equals(a, b, options.strict)
 }
 
@@ -110,7 +131,7 @@ function pick (v, props) {
     }
 
     if (notAnArray(props)) {
-        throw new Error('"pick" keys should be strings.')
+        throw new Error('"pick" should be array.')
     }
 
     const result = {}
@@ -118,7 +139,7 @@ function pick (v, props) {
     for (let keys of props) {
 
         if (typeof keys !== 'string') {
-            throw new Error('"pick" keys should be strings.')
+            throw new Error('"pick" values should be strings.')
         }
 
         copyProperty(v, result, keys.split('.'))
@@ -152,23 +173,68 @@ function copyProperty (src, dst, keys) {
     }
 }
 
-function equals (a, b, strict, visited_a, visited_b, basePath) {
+function omit (v, props) {
 
-    visited_a = makeVisited(visited_a)
-    visited_b = makeVisited(visited_b)
-
-    basePath = basePath || []
-
-    if (visited_a.paths(a)) {
-
-        visited_a.add(a, basePath)
-        visited_b.add(b, basePath)
-
-        return visited_a.samePaths(a, visited_b.paths(b))
+    if (!isObject(v)) {
+        return v
     }
 
-    visited_a.add(a, basePath)
-    visited_b.add(b, basePath)
+    if (typeof props === 'string') {
+        props = [ props ]
+    }
+
+    if (notAnArray(props)) {
+        throw new Error('"omit" should be array.')
+    }
+
+    const exclusionTree = getExclusion(props)
+
+    return copyObjectWithExclusion(v, exclusionTree)
+}
+
+function getExclusion (props) {
+
+    const result = {}
+
+    for (let keys of props) {
+
+        keys = keys.split('.')
+
+        const keysDepth = keys.length
+        const lastKey = keysDepth - 1
+
+        let pointer = result
+
+        for (let i = 0; i < keysDepth; i++) {
+
+            const key = keys[i]
+
+            if (i === lastKey) {
+                pointer[key] = true
+            } else {
+                pointer = pointer[key] = pointer[key] || {}
+            }
+        }
+    }
+
+    return result
+}
+
+function copyObjectWithExclusion (obj, exclusion) {
+
+    const result = isObject(obj) ? {} : obj
+
+    for (let key in obj) {
+
+        if (exclusion[key] === true) { continue }
+
+        result[key] = copyObjectWithExclusion(obj[key], exclusion[key])
+    }
+
+    return result
+}
+
+const strictEq = function (a, b) {
 
     if (!isObject(a) && !isObject(b)) {
 
@@ -176,133 +242,24 @@ function equals (a, b, strict, visited_a, visited_b, basePath) {
             return true
         }
 
-        return strict === false ? a == b : a === b
+        return a === b
     }
-
-    if (!isObject(a) || !isObject(b)) {
-        return false
-    }
-
-    if (Object.keys(a).length !== Object.keys(b).length) {
-        return false
-    }
-
-    for (let key in a) {
-        if (hasOwn(a, key)) {
-
-            if (!hasOwn(b, key)) {
-                return false
-            }
-
-            const keyPath = basePath.concat(key)
-
-            if (!equals(a[key], b[key], strict, visited_a, visited_b, keyPath)) {
-                return false
-            }
-        }
-    }
-
-    return true
 }
 
-function makeVisited (visited) {
+const abstractEq = function (a, b) {
 
-    if (visited) {
-        return visited
-    }
+    if (!isObject(a) && !isObject(b)) {
 
-    const nodes = []
-
-    function equalPaths (path1, path2) {
-
-        if (path1.length !== path2.length) {
-            return false
-        }
-
-        for (let idx in path1) {
-
-            if (path1[idx] !== path2[idx]) {
-                return false
-            }
-        }
-
-        return true
-    }
-
-    visited = {
-
-        add: (node, path) => {
-
-            if (visited.has(node, path)) { return }
-
-            const paths = visited.paths(node)
-
-            if (paths) {
-
-                paths.push(path)
-
-            } else {
-
-                nodes.push({
-                    node: node,
-                    paths: [path],
-                })
-            }
-        },
-
-        has: (node, path) => {
-
-            const paths = visited.paths(node)
-
-            if (!paths) { return false }
-
-            for (let p of paths) {
-
-                if (!equalPaths(p, path)) {
-                    return false
-                }
-            }
-
-            return true
-        },
-
-        paths: (node) => {
-
-            for (let n of nodes) {
-                if (n.node === node) { return n.paths }
-            }
-
-            return null
-        },
-
-        samePaths: (node, paths) => {
-
-            const nodePaths = visited.paths(node)
-
-            if (nodePaths === null && paths === null) {
-                return true
-            }
-
-            if (nodePaths === null || paths === null) {
-                return false
-            }
-
-            if (nodePaths.length !== paths.length) {
-                return false
-            }
-
-            for (let pathIdx in nodePaths) {
-
-                if (!equalPaths(nodePaths[pathIdx], paths[pathIdx])) {
-                    return false
-                }
-            }
-
+        if (isNaN(a) && isNaN(b)) {
             return true
         }
-    }
 
-    return visited
+        return a == b
+    }
+}
+
+function equals (a, b, strict) {
+    return isEqualWith(a, b, strict === false ? abstractEq : strictEq)
 }
 
 function notAnArray (array) {
