@@ -414,6 +414,22 @@ describe('nodup', function () {
                 7
             ])
         })
+
+        it('respects arrays', function () {
+
+            const array = [
+                [ 1 ],
+                { 0: 1 },
+                [ 1, 2 ],
+            ]
+
+            const result = nodup(array, { pick: [ '0' ] })
+
+            assert.deepStrictEqual(result, [
+                [ 1 ],
+                { 0: 1 },
+            ])
+        })
     })
 
     context('"omit" option', function () {
@@ -439,6 +455,22 @@ describe('nodup', function () {
                 { c: 10 },
                 5,
                 7
+            ])
+        })
+
+        it('respects arrays', function () {
+
+            const array = [
+                [ 1, 2 ],
+                { 0: 1, 1: 2 },
+                [ 1, 2 ],
+            ]
+
+            const result = nodup(array, { omit: [ '1' ] })
+
+            assert.deepStrictEqual(result, [
+                [ 1, 2 ],
+                { 0: 1, 1: 2 },
             ])
         })
     })

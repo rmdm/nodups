@@ -2,6 +2,17 @@
 
 const isEqualWith = require('lodash.isequalwith')
 
+/**
+ * @param {Object} [options]
+ * @param {Boolean} [options.sorted]
+ * @param {Boolean} [options.inplace]
+ * @param {Boolean} [options.strict = true]
+ * @param {String|Function} [options.compare]
+ * @param {String|Array(String)|Array(Array(String))} [options.pick]
+ * @param {String|Array(String)|Array(Array(String))} [options.omit]
+ * @param {Function} [options.onUnique]
+ */
+
 export default function (array, options) {
 
     if (notAnArray(array)) {
@@ -134,7 +145,7 @@ function pick (v, props) {
         throw new Error('"pick" should be array.')
     }
 
-    const result = {}
+    const result = baseObject(v)
 
     for (let keys of props) {
 
@@ -222,7 +233,7 @@ function getExclusion (props) {
 
 function copyObjectWithExclusion (obj, exclusion) {
 
-    const result = isObject(obj) ? {} : obj
+    const result = isObject(obj) ? baseObject(obj) : obj
 
     for (let key in obj) {
 
@@ -272,4 +283,10 @@ function hasOwn (obj, key) {
 
 function isObject (obj) {
     return obj && typeof obj === 'object'
+}
+
+function baseObject (obj) {
+    const Ctor = function () {}
+    Ctor.prototype = Object.getPrototypeOf(obj)
+    return new Ctor()
 }
