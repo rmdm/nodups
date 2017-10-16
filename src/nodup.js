@@ -13,122 +13,166 @@ const isEqualWith = require('lodash.isequalwith')
  * @param {Function} [options.onUnique]
  */
 
-export default function (array, options) {
+export default function (array, options = {}) {
 
     if (notAnArray(array)) {
         return []
     }
 
-    return getUniq(array, options)
-}
+    let { uniques, duplicates } = traversal(array, options)
 
-function getUniq (array, options = {}) {
-
-    let noduped
-
-    if (options.sorted) {
-        noduped = getSortedUniq(array, options)
-    } else {
-        noduped = getRandomUniq(array, options)
-    }
-
-    let result = noduped.array
+    let result = uniques
 
     if (options.inplace) {
         array.length = 0
-        array.push.apply(array, noduped.array)
+        array.push.apply(array, result)
         result = array
     }
 
     if (typeof options.onUnique === 'function') {
         for (let i = 0; i < result.length; i++) {
             const el = result[i]
-            options.onUnique(el, noduped.duplicates.get(el), i, result)
+            options.onUnique(el, duplicates.get(el), i, result)
         }
     }
 
     return result
 }
 
-function getSortedUniq (array, options) {
+function traversal (array, options) {
 
-    const result = [], duplicates = new Map()
+    const uniques = []
 
     if (!array.length) {
-        return result
+        return uniques
     }
 
-    let last = array[0]
+    const contains = options.sorted ? containsSorted : containsRandom
+    const trackDuplicates = typeof options.onUnique === 'function'
 
-    result.push(last)
-    duplicates.set(last, [])
+    let duplicates
 
-    for (let i = 1; i < array.length; i++) {
-
-        const el = array[i]
-
-        if (compare(el, last, options)) {
-            duplicates.get(last).push(el)
-        } else {
-            result.push(el)
-            duplicates.set(el, [])
-            last = el
-        }
+    if (trackDuplicates) {
+        duplicates = new Map()
     }
 
-    return { array: result, duplicates: duplicates }
-}
+    const propsRestricted = arePropsRestricted(options)
+    const restricted = [], cache = propsRestricted ? [] : array
 
-function getRandomUniq (array, options) {
+    for (let i = 0; i < array.length; i++) {
 
-    const result = [], duplicates = new Map()
+        if (propsRestricted && !cache.hasOwnProperty(i)) {
 
-    for (let el of array) {
+            if (options.pick) {
+                cache[i] = pick(array[i], options.pick)
+            }
 
-        let hasNoDuplicates = true
-
-        for (let unique of result) {
-            if (compare(unique, el, options)) {
-                hasNoDuplicates = false
-                duplicates.get(unique).push(el)
-                break
+            if (options.omit) {
+                cache[i] = omit(array[i], options.omit)
             }
         }
 
-        if (hasNoDuplicates) {
-            result.push(el)
-            duplicates.set(el, [])
+        const el = cache[i]
+        const current = array[i]
+
+
+        const { index, same } = contains(restricted, el, options)
+
+        if (same) {
+
+            if (trackDuplicates) {
+                duplicates.get(uniques[index]).push(current)
+            }
+
+        } else {
+
+            if (trackDuplicates) {
+                duplicates.set(current, [])
+            }
+
+            uniques.push(current)
+            restricted.push(el)
         }
     }
 
-    return { array: result, duplicates: duplicates }
+    return trackDuplicates ? { uniques, duplicates } : { uniques }
 }
 
-function compare (a, b, options) {
+function arePropsRestricted (options) {
+    return ( hasOwn(options, 'pick') || hasOwn(options, 'omit') ) &&
+        options.compare !== '==' && options.compare !== '===' &&
+        typeof options.compare !== 'function'
+}
 
-    if (options.compare === '==') {
+function containsSorted (array, el, options) {
+
+    const lastIndex = array.length - 1
+
+    if (lastIndex !== -1) {
+
+        const lastEl = array[lastIndex]
+
+        if (equals(lastEl, el, options)) {
+            return { index: lastIndex, same: true }
+        }
+    }
+
+    return { index: -1, same: false }
+}
+
+function containsRandom (array, el, options) {
+
+    for (let i = 0; i < array.length; i++) {
+
+        const unique = array[i]
+
+        if (equals(unique, el, options)) {
+            return { index: i, same: true }
+        }
+    }
+
+    return { index: -1, same: false }
+}
+
+function equals (a, b, { compare, strict }) {
+
+    if (compare === '==') {
         return a == b
     }
 
-    if (options.compare === '===') {
+    if (compare === '===') {
         return a === b
     }
 
-    if (typeof options.compare === 'function') {
-        return options.compare(a, b)
+    if (typeof compare === 'function') {
+        return compare(a, b)
     }
 
-    if (options.pick) {
-        a = pick(a, options.pick)
-        b = pick(b, options.pick)
-    }
+    return isEqualWith(a, b, strict === false ? abstractEq : strictEq)
+}
 
-    if (options.omit) {
-        a = omit(a, options.omit)
-        b = omit(b, options.omit)
-    }
+function strictEq (a, b) {
 
-    return equals(a, b, options.strict)
+    if (!isObject(a) && !isObject(b)) {
+
+        if (isNaN(a) && isNaN(b)) {
+            return true
+        }
+
+        return a === b
+    }
+}
+
+function abstractEq (a, b) {
+
+    if (!isObject(a) && !isObject(b)) {
+
+        if (isNaN(a) && isNaN(b)) {
+            return true
+        }
+
+        return a == b
+    }
 }
 
 function pick (v, props) {
@@ -243,34 +287,6 @@ function copyObjectWithExclusion (obj, exclusion) {
     }
 
     return result
-}
-
-const strictEq = function (a, b) {
-
-    if (!isObject(a) && !isObject(b)) {
-
-        if (isNaN(a) && isNaN(b)) {
-            return true
-        }
-
-        return a === b
-    }
-}
-
-const abstractEq = function (a, b) {
-
-    if (!isObject(a) && !isObject(b)) {
-
-        if (isNaN(a) && isNaN(b)) {
-            return true
-        }
-
-        return a == b
-    }
-}
-
-function equals (a, b, strict) {
-    return isEqualWith(a, b, strict === false ? abstractEq : strictEq)
 }
 
 function notAnArray (array) {
