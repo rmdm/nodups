@@ -57,34 +57,27 @@ function traversal (array, options) {
     }
 
     const propsRestricted = arePropsRestricted(options)
-    const restricted = [], cache = propsRestricted ? [] : array
+    const restricted = []
 
     for (let i = 0; i < array.length; i++) {
 
-        if (propsRestricted && !cache.hasOwnProperty(i)) {
+        const current = array[i]
+        let el = current
 
-            if (options.pick) {
-                cache[i] = pick(array[i], options.pick)
+        if (propsRestricted) {
+
+            if (hasOwn(options, 'pick')) {
+                el = pick(el, options.pick)
             }
 
-            if (options.omit) {
-                cache[i] = omit(array[i], options.omit)
+            if (hasOwn(options, 'omit')) {
+                el = omit(el, options.omit)
             }
         }
 
-        const el = cache[i]
-        const current = array[i]
+        const index = contains(restricted, el, options)
 
-
-        const { index, same } = contains(restricted, el, options)
-
-        if (same) {
-
-            if (trackDuplicates) {
-                duplicates.get(uniques[index]).push(current)
-            }
-
-        } else {
+        if (index === -1) {
 
             if (trackDuplicates) {
                 duplicates.set(current, [])
@@ -92,6 +85,9 @@ function traversal (array, options) {
 
             uniques.push(current)
             restricted.push(el)
+
+        } else if (trackDuplicates) {
+            duplicates.get(uniques[index]).push(current)
         }
     }
 
@@ -113,11 +109,11 @@ function containsSorted (array, el, options) {
         const lastEl = array[lastIndex]
 
         if (equals(lastEl, el, options)) {
-            return { index: lastIndex, same: true }
+            return lastIndex
         }
     }
 
-    return { index: -1, same: false }
+    return -1
 }
 
 function containsRandom (array, el, options) {
@@ -127,11 +123,11 @@ function containsRandom (array, el, options) {
         const unique = array[i]
 
         if (equals(unique, el, options)) {
-            return { index: i, same: true }
+            return i
         }
     }
 
-    return { index: -1, same: false }
+    return -1
 }
 
 function equals (a, b, { compare, strict }) {
