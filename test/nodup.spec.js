@@ -430,6 +430,22 @@ describe('nodup', function () {
                 { 0: 1 },
             ])
         })
+
+        it('capable of picking deep props', function () {
+
+            const array = [
+                { a: { b: { c: 10, d: 11 }}},
+                { c: 10 },
+                { a: { b: { c: 10, d: 21 }}},
+            ]
+
+            const result = nodup(array, { pick: [ 'a.b.c' ] })
+
+            assert.deepStrictEqual(result, [
+                { a: { b: { c: 10, d: 11 }}},
+                { c: 10 },
+            ])
+        })
     })
 
     context('"omit" option', function () {
@@ -471,6 +487,22 @@ describe('nodup', function () {
             assert.deepStrictEqual(result, [
                 [ 1, 2 ],
                 { 0: 1, 1: 2 },
+            ])
+        })
+
+        it('capable of omitting deep props', function () {
+
+            const array = [
+                { a: { b: { c: 10, d: 11 }}},
+                { c: 10 },
+                { a: { b: { c: 10, d: 21 }}},
+            ]
+
+            const result = nodup(array, { omit: [ 'a.b.d' ] })
+
+            assert.deepStrictEqual(result, [
+                { a: { b: { c: 10, d: 11 }}},
+                { c: 10 },
             ])
         })
     })
