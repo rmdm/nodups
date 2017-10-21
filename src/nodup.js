@@ -19,7 +19,7 @@ export default function (array, options = {}) {
         return []
     }
 
-    let { uniques, duplicates } = traversal(array, options)
+    let { uniques, duplicates } = getUniques(array, options)
 
     let result = uniques
 
@@ -39,7 +39,7 @@ export default function (array, options = {}) {
     return result
 }
 
-function traversal (array, options) {
+function getUniques (array, options) {
 
     const uniques = []
 
@@ -48,6 +48,8 @@ function traversal (array, options) {
     }
 
     const contains = options.sorted ? containsSorted : containsRandom
+    const equals = getEquals(options)
+
     const trackDuplicates = typeof options.onUnique === 'function'
 
     let duplicates
@@ -56,42 +58,24 @@ function traversal (array, options) {
         duplicates = new Map()
     }
 
-    const propsRestricted = arePropsRestricted(options)
-    const restricted = []
+    for (let el of array) {
 
-    for (let i = 0; i < array.length; i++) {
-
-        const current = array[i]
-        let el = current
-
-        if (propsRestricted) {
-
-            if (hasOwn(options, 'pick')) {
-                el = pick(el, options.pick)
-            }
-
-            if (hasOwn(options, 'omit')) {
-                el = omit(el, options.omit)
-            }
-        }
-
-        const index = contains(restricted, el, options)
+        const index = contains(uniques, el, equals, options)
 
         if (index === -1) {
 
             if (trackDuplicates) {
-                duplicates.set(current, [])
+                duplicates.set(el, [])
             }
 
-            uniques.push(current)
-            restricted.push(el)
+            uniques.push(el)
 
         } else if (trackDuplicates) {
-            duplicates.get(uniques[index]).push(current)
+            duplicates.get(uniques[index]).push(el)
         }
     }
 
-    return trackDuplicates ? { uniques, duplicates } : { uniques }
+    return { uniques, duplicates }
 }
 
 function arePropsRestricted (options) {
@@ -100,7 +84,7 @@ function arePropsRestricted (options) {
         typeof options.compare !== 'function'
 }
 
-function containsSorted (array, el, options) {
+function containsSorted (array, el, equals, options) {
 
     const lastIndex = array.length - 1
 
@@ -116,7 +100,7 @@ function containsSorted (array, el, options) {
     return -1
 }
 
-function containsRandom (array, el, options) {
+function containsRandom (array, el, equals, options) {
 
     for (let i = 0; i < array.length; i++) {
 
@@ -130,21 +114,103 @@ function containsRandom (array, el, options) {
     return -1
 }
 
-function equals (a, b, { compare, strict }) {
+function getEquals (options) {
 
-    if (compare === '==') {
-        return a == b
+    if (typeof options.compare === 'function') {
+        return options.compare
     }
 
-    if (compare === '===') {
-        return a === b
+    if (options.compare === '==') {
+        return abstractEquals
     }
 
-    if (typeof compare === 'function') {
-        return compare(a, b)
+    if (options.compare === '===') {
+        return strictEquals
     }
 
-    return isEqualWith(a, b, strict === false ? abstractEq : strictEq)
+    const eq = options.strict === false ? abstractEq : strictEq
+
+    if (hasOwn(options, 'pick')) {
+        return function (a, b) {
+            return isEqualWithPick(a, b, eq, options.pick)
+        }
+    }
+
+    if (hasOwn(options, 'omit')) {
+        return function (a, b) {
+            return isEqualWithOmit(a, b, eq, options.omit)
+        }
+    }
+
+    return function (a, b) {
+        return isEqualWith(a, b, eq)
+    }
+}
+
+function abstractEquals (a, b) {
+    return a == b
+}
+
+function strictEquals (a, b) {
+    return a === b
+}
+
+function isEqualWithPick (a, b, eq, pick) {
+
+    const propsTree = getPropsTree(pick)
+
+    return eqPick(a, b, eq, propsTree)
+}
+
+function eqPick (a, b, eq, tree) {
+
+    if (!isObject(a) || !isObject(b)) { return isEqualWith(a, b, eq) }
+
+    if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) { return false }
+
+    for (let key in tree) {
+
+        if (tree[key] === true) {
+            if (!isEqualWith(a[key], b[key], eq)) {
+                return false
+            }
+        }
+
+        if (!eqPick(a[key], b[key], eq, tree[key])) {
+            return false
+        }
+    }
+
+    return true
+}
+
+function isEqualWithOmit (a, b, eq, omit) {
+
+    const propsTree = getPropsTree(omit)
+
+    return eqOmit(a, b, eq, propsTree)
+}
+
+function eqOmit (a, b, eq, tree) {
+
+    if (tree === true) { return true }
+
+    if (!tree) { return isEqualWith(a, b, eq) }
+
+    if (!isObject(a) || !isObject(b)) { return isEqualWith(a, b, eq) }
+
+    if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) { return false }
+
+    for (let k in a) {
+
+        if ((hasOwn(a, k) ^ hasOwn(b, k)) === 1) { return false }
+
+        if (!hasOwn(a, k)) { continue }
+
+        if (!eqOmit(a[k], b[k], eq, tree[k])) { return false }
+    }
+
+    return Object.keys(b).length === Object.keys(a).length
 }
 
 function strictEq (a, b) {
@@ -171,79 +237,7 @@ function abstractEq (a, b) {
     }
 }
 
-function pick (v, props) {
-
-    if (!isObject(v)) {
-        return v
-    }
-
-    if (typeof props === 'string'){
-        props = [ props ]
-    }
-
-    if (notAnArray(props)) {
-        throw new Error('"pick" should be array.')
-    }
-
-    const result = baseObject(v)
-
-    for (let keys of props) {
-
-        if (typeof keys !== 'string') {
-            throw new Error('"pick" values should be strings.')
-        }
-
-        copyProperty(v, result, keys.split('.'))
-    }
-
-    return result
-}
-
-function copyProperty (src, dst, keys) {
-
-    let pointer = src
-
-    const len = keys.length
-    const lastIndex = len - 1
-
-    for (let i = 0; i < len; i++) {
-
-        const key = keys[i]
-
-        if (!hasOwn(pointer, key)) {
-            return
-        }
-
-        if (isObject(pointer[key]) && i < lastIndex) {
-            dst = dst[key] = {}
-            pointer = pointer[key]
-        } else {
-            dst[key] = pointer[key]
-            return
-        }
-    }
-}
-
-function omit (v, props) {
-
-    if (!isObject(v)) {
-        return v
-    }
-
-    if (typeof props === 'string') {
-        props = [ props ]
-    }
-
-    if (notAnArray(props)) {
-        throw new Error('"omit" should be array.')
-    }
-
-    const exclusionTree = getExclusion(props)
-
-    return copyObjectWithExclusion(v, exclusionTree)
-}
-
-function getExclusion (props) {
+function getPropsTree (props) {
 
     const result = {}
 
@@ -271,20 +265,6 @@ function getExclusion (props) {
     return result
 }
 
-function copyObjectWithExclusion (obj, exclusion) {
-
-    const result = isObject(obj) ? baseObject(obj) : obj
-
-    for (let key in obj) {
-
-        if (exclusion[key] === true) { continue }
-
-        result[key] = copyObjectWithExclusion(obj[key], exclusion[key])
-    }
-
-    return result
-}
-
 function notAnArray (array) {
     return !Array.isArray(array)
 }
@@ -295,10 +275,4 @@ function hasOwn (obj, key) {
 
 function isObject (obj) {
     return obj && typeof obj === 'object'
-}
-
-function baseObject (obj) {
-    const Ctor = function () {}
-    Ctor.prototype = Object.getPrototypeOf(obj)
-    return new Ctor()
 }
