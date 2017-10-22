@@ -21,22 +21,20 @@ export default function (array, options = {}) {
 
     let { uniques, duplicates } = getUniques(array, options)
 
-    let result = uniques
-
     if (options.inplace) {
         array.length = 0
-        array.push.apply(array, result)
-        result = array
+        array.push.apply(array, uniques)
+        uniques = array
     }
 
     if (typeof options.onUnique === 'function') {
-        for (let i = 0; i < result.length; i++) {
-            const el = result[i]
-            options.onUnique(el, duplicates.get(el), i, result)
+        for (let i = 0; i < uniques.length; i++) {
+            const el = uniques[i]
+            options.onUnique(el, duplicates.get(el), i, uniques)
         }
     }
 
-    return result
+    return uniques
 }
 
 function getUniques (array, options) {
@@ -76,12 +74,6 @@ function getUniques (array, options) {
     }
 
     return { uniques, duplicates }
-}
-
-function arePropsRestricted (options) {
-    return ( hasOwn(options, 'pick') || hasOwn(options, 'omit') ) &&
-        options.compare !== '==' && options.compare !== '===' &&
-        typeof options.compare !== 'function'
 }
 
 function containsSorted (array, el, equals, options) {
@@ -128,7 +120,16 @@ function getEquals (options) {
         return strictEquals
     }
 
+    const propsRestricted = arePropsRestricted(options)
+
     const eq = options.strict === false ? abstractEq : strictEq
+
+    if (!propsRestricted) {
+
+        return function (a, b) {
+            return isEqualWith(a, b, eq)
+        }
+    }
 
     if (hasOwn(options, 'pick')) {
         return function (a, b) {
@@ -141,10 +142,6 @@ function getEquals (options) {
             return isEqualWithOmit(a, b, eq, options.omit)
         }
     }
-
-    return function (a, b) {
-        return isEqualWith(a, b, eq)
-    }
 }
 
 function abstractEquals (a, b) {
@@ -153,6 +150,12 @@ function abstractEquals (a, b) {
 
 function strictEquals (a, b) {
     return a === b
+}
+
+function arePropsRestricted (options) {
+    return ( hasOwn(options, 'pick') || hasOwn(options, 'omit') ) &&
+        options.compare !== '==' && options.compare !== '===' &&
+        typeof options.compare !== 'function'
 }
 
 function isEqualWithPick (a, b, eq, pick) {
