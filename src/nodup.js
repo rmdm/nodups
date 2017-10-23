@@ -15,7 +15,7 @@ const isEqualWith = require('lodash.isequalwith')
 
 export default function (array, options = {}) {
 
-    if (notAnArray(array)) {
+    if (!Array.isArray(array)) {
         return []
     }
 
@@ -131,13 +131,13 @@ function getEquals (options) {
         }
     }
 
-    if (hasOwn(options, 'pick')) {
+    if (options.pick != null) {
         return function (a, b) {
             return isEqualWithPick(a, b, eq, options.pick)
         }
     }
 
-    if (hasOwn(options, 'omit')) {
+    if (options.omit != null) {
         return function (a, b) {
             return isEqualWithOmit(a, b, eq, options.omit)
         }
@@ -153,7 +153,7 @@ function strictEquals (a, b) {
 }
 
 function arePropsRestricted (options) {
-    return ( hasOwn(options, 'pick') || hasOwn(options, 'omit') ) &&
+    return ( options.pick != null || options.omit != null ) &&
         options.compare !== '==' && options.compare !== '===' &&
         typeof options.compare !== 'function'
 }
@@ -196,15 +196,22 @@ function isEqualWithOmit (a, b, eq, omit) {
 
 function eqOmit (a, b, eq, tree) {
 
-    if (tree === true) { return true }
-
     if (!tree) { return isEqualWith(a, b, eq) }
 
     if (!isObject(a) || !isObject(b)) { return isEqualWith(a, b, eq) }
 
     if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) { return false }
 
+    let aKeys = Object.keys(a).length
+    let bKeys = Object.keys(b).length
+
     for (let k in a) {
+
+        if (tree[k] === true) {
+            aKeys--
+            if (hasOwn(b, k)) { bKeys-- }
+            continue
+        }
 
         if ((hasOwn(a, k) ^ hasOwn(b, k)) === 1) { return false }
 
@@ -213,7 +220,7 @@ function eqOmit (a, b, eq, tree) {
         if (!eqOmit(a[k], b[k], eq, tree[k])) { return false }
     }
 
-    return Object.keys(b).length === Object.keys(a).length
+    return aKeys === bKeys
 }
 
 function strictEq (a, b) {
@@ -240,22 +247,28 @@ function abstractEq (a, b) {
     }
 }
 
-function getPropsTree (props) {
+function getPropsTree (paths) {
+
+    if (!Array.isArray(paths)) {
+        paths = [ paths ]
+    }
 
     const result = {}
 
-    for (let keys of props) {
+    for (let path of paths) {
 
-        keys = keys.split('.')
+        if (!Array.isArray(path)) {
+            path = String(path).split('.')
+        }
 
-        const keysDepth = keys.length
-        const lastKey = keysDepth - 1
+        const pathDepth = path.length
+        const lastKey = pathDepth - 1
 
         let pointer = result
 
-        for (let i = 0; i < keysDepth; i++) {
+        for (let i = 0; i < pathDepth; i++) {
 
-            const key = keys[i]
+            const key = path[i]
 
             if (i === lastKey) {
                 pointer[key] = true
@@ -266,10 +279,6 @@ function getPropsTree (props) {
     }
 
     return result
-}
-
-function notAnArray (array) {
-    return !Array.isArray(array)
 }
 
 function hasOwn (obj, key) {

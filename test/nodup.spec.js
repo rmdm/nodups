@@ -13,6 +13,15 @@ describe('nodup', function () {
         assert.deepStrictEqual(result, [])
     })
 
+    it('returns different empty array when empty array is passed (and when "inplace" option is not specified)', function () {
+
+        const duplicates = []
+
+        const uniques = nodup(duplicates)
+
+        assert.notEqual(duplicates, uniques)
+    })
+
     it('returns empty array if not an array is passed', function () {
 
         const result = nodup('A string')
@@ -229,7 +238,28 @@ describe('nodup', function () {
         assert.deepStrictEqual(result, [ a, d, e, f ])
     })
 
+    it('respects array subclasses', function () {
+
+        const Queue = class extends Array {}
+
+        const q = new Queue(1, 4, 2, 5, 3, 4, 5, 1)
+
+        const result = nodup(q, { inplace: true })
+
+        assert.equal(result, q)
+        assert.deepEqual(result, [ 1, 4, 2, 5, 3 ])
+    })
+
     context('"inplace" option', function () {
+
+        it('returns same array when the empyt one is passed an "inplace" option is specified', function () {
+
+            const duplicates = []
+
+            const uniques = nodup(duplicates, { inplace: true })
+
+            assert.equal(duplicates, uniques)
+        })
 
         it('returns passed array if it has no dups', function () {
 
@@ -446,6 +476,101 @@ describe('nodup', function () {
                 { c: 10 },
             ])
         })
+
+        it('ignores pick when it is undefined', function () {
+
+            const array = [
+                { undefined: 1, a: 5, b: 10 },
+                { undefined: 1, a: 5, b: 11 },
+            ]
+
+            const result = nodup(array, { pick: undefined })
+
+            assert.deepStrictEqual(result, [
+                { undefined: 1, a: 5, b: 10 },
+                { undefined: 1, a: 5, b: 11 },
+            ])
+        })
+
+        it('ignores pick when it is null', function () {
+
+            const array = [
+                { null: 1, a: 5, b: 10 },
+                { null: 1, a: 5, b: 11 },
+            ]
+
+            const result = nodup(array, { pick: null })
+
+            assert.deepStrictEqual(result, [
+                { null: 1, a: 5, b: 10 },
+                { null: 1, a: 5, b: 11 },
+            ])
+        })
+
+        it('understands number as pick', function () {
+
+            const array = [
+                [ 1, 2 ],
+                [ 1 ],
+            ]
+
+            const result = nodup(array, { pick: 0 })
+
+            assert.deepStrictEqual(result, [
+                [ 1, 2 ],
+            ])
+        })
+
+        it('understands boolean as pick', function () {
+
+            const array = [
+                { false: true, true: false },
+                { false: true, true: true },
+                { false: false, true: true },
+                { false: false, true: false },
+            ]
+
+            const result = nodup(array, { pick: false })
+
+            assert.deepStrictEqual(result, [
+                { false: true, true: false },
+                { false: false, true: true },
+            ])
+        })
+
+        it('picks by several deep paths', function () {
+
+            const array = [
+                { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: 4, b: 5, c: 6, d: { e: { f: 10 }, g: 10, h: 8 } },
+                { a: 7, b: 8, c: 9, d: { e: { f: 10 }, g: 11, h: 7 } },
+                { a: 0, b: 21, c: 31, d: { e: { f: 10 }, g: 11 } },
+            ]
+
+            const result = nodup(array, { pick: [ 'd.e.f', 'd.g' ] })
+
+            assert.deepStrictEqual(result, [
+                { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: 4, b: 5, c: 6, d: { e: { f: 10 }, g: 10, h: 8 } },
+            ])
+        })
+
+        it('picks by several deep paths each passed as an array', function () {
+
+            const array = [
+                { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: 4, b: 5, c: 6, d: { e: { f: 10 }, g: 10, h: 8 } },
+                { a: 7, b: 8, c: 9, d: { e: { f: 10 }, g: 11, h: 7 } },
+                { a: 0, b: 21, c: 31, d: { e: { f: 10 }, g: 11 } },
+            ]
+
+            const result = nodup(array, { pick: [ [ 'd', 'e', 'f' ], [ 'd', 'g' ] ] })
+
+            assert.deepStrictEqual(result, [
+                { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: 4, b: 5, c: 6, d: { e: { f: 10 }, g: 10, h: 8 } },
+            ])
+        })
     })
 
     context('"omit" option', function () {
@@ -503,6 +628,87 @@ describe('nodup', function () {
             assert.deepStrictEqual(result, [
                 { a: { b: { c: 10, d: 11 }}},
                 { c: 10 },
+            ])
+        })
+
+        it('ignores omit when it is undefined', function () {
+
+            const array = [
+                { undefined: 1, a: 5, b: 10 },
+                { undefined: 1, a: 5, b: 11 },
+            ]
+
+            const result = nodup(array, { omit: undefined })
+
+            assert.deepStrictEqual(result, [
+                { undefined: 1, a: 5, b: 10 },
+                { undefined: 1, a: 5, b: 11 },
+            ])
+        })
+
+        it('ignores omit when it is null', function () {
+
+            const array = [
+                { undefined: 1, a: 5, b: 10 },
+                { undefined: 1, a: 5, b: 11 },
+            ]
+
+            const result = nodup(array, { omit: null })
+
+            assert.deepStrictEqual(result, [
+                { undefined: 1, a: 5, b: 10 },
+                { undefined: 1, a: 5, b: 11 },
+            ])
+        })
+
+        it('understands boolean as omit', function () {
+
+            const array = [
+                { false: true, true: false },
+                { false: true, true: true },
+                { false: false, true: true },
+                { false: false, true: false },
+            ]
+
+            const result = nodup(array, { omit: true })
+
+            assert.deepStrictEqual(result, [
+                { false: true, true: false },
+                { false: false, true: true },
+            ])
+        })
+
+        it('omits by several deep paths', function () {
+
+            const array = [
+                { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: { b: { c: 2 } }, d: { e: { f: 10 }, g: 10, h: 8 } },
+                { a: { b: { c: 3 } }, d: { e: { f: 10 }, g: 11, h: 7 } },
+                { a: { b: { c: 4 } }, d: { e: { f: 10 }, g: 11 } },
+            ]
+
+            const result = nodup(array, { omit: [ 'a.b.c', 'd.h' ] })
+
+            assert.deepStrictEqual(result, [
+                { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: { b: { c: 2 } }, d: { e: { f: 10 }, g: 10, h: 8 } },
+            ])
+        })
+
+        it('omits by several deep paths each passed as an array', function () {
+
+            const array = [
+                { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: { b: { c: 2 } }, d: { e: { f: 10 }, g: 10, h: 8 } },
+                { a: { b: { c: 3 } }, d: { e: { f: 10 }, g: 11, h: 7 } },
+                { a: { b: { c: 4 } }, d: { e: { f: 10 }, g: 11 } },
+            ]
+
+            const result = nodup(array, { omit: [ [ 'a', 'b', 'c' ], [ 'd', 'h' ] ] })
+
+            assert.deepStrictEqual(result, [
+                { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
+                { a: { b: { c: 2 } }, d: { e: { f: 10 }, g: 10, h: 8 } },
             ])
         })
     })
