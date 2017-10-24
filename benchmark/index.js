@@ -7,10 +7,6 @@ const nodup = require('../')
 const uniq = require('uniq')
 const uniqWith = require('lodash.uniqwith')
 
-// console.log(nodup([1, 1, 2, 2, 3, 5]))
-// console.log(uniq([1, 1, 2, 2, 3, 5]))
-// console.log(uniqWith([1, 1, 2, 2, 3, 5]))
-
 suite
 .add('uniq', function() {
 
@@ -22,7 +18,7 @@ suite
 
     var arr = [1, 1, 2, 2, 3, 5]
 
-    uniqWith(arr, function (a, b) { return a === b })
+    uniqWith(arr, (a, b) => a === b)
 })
 .add('nodup', function() {
 
@@ -58,7 +54,7 @@ suite
 
     var arr = [1, 1, 2, 2, 3, 5]
 
-    nodup(arr, {compare: (a, b) => a === b })
+    nodup(arr, { compare: (a, b) => a === b })
 })
 .add('nodup {strict false}', function () {
 

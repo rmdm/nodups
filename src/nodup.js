@@ -4,8 +4,8 @@ const isEqualWith = require('lodash.isequalwith')
 
 /**
  * @param {Object} [options]
- * @param {Boolean} [options.sorted]
- * @param {Boolean} [options.inplace]
+ * @param {Boolean} [options.sorted = false]
+ * @param {Boolean} [options.inplace = false]
  * @param {Boolean} [options.strict = true]
  * @param {String|Function} [options.compare]
  * @param {String|Array(String)|Array(Array(String))} [options.pick]
@@ -122,24 +122,28 @@ function getEquals (options) {
 
     const propsRestricted = arePropsRestricted(options)
 
-    const eq = options.strict === false ? abstractEq : strictEq
+    const eq = options.strict === false ? abstractCustomizer : strictCustomizer
 
-    if (!propsRestricted) {
+    if (propsRestricted && options.pick != null) {
+
+        const propsTree = getPropsTree(options.pick)
+
+        return function (a, b) {
+            return isEqualWithPick(a, b, eq, propsTree)
+        }
+
+    } else if (propsRestricted && options.omit != null) {
+
+        const propsTree = getPropsTree(options.omit)
+
+        return function (a, b) {
+            return isEqualWithOmit(a, b, eq, propsTree)
+        }
+
+    } else {
 
         return function (a, b) {
             return isEqualWith(a, b, eq)
-        }
-    }
-
-    if (options.pick != null) {
-        return function (a, b) {
-            return isEqualWithPick(a, b, eq, options.pick)
-        }
-    }
-
-    if (options.omit != null) {
-        return function (a, b) {
-            return isEqualWithOmit(a, b, eq, options.omit)
         }
     }
 }
@@ -158,18 +162,9 @@ function arePropsRestricted (options) {
         typeof options.compare !== 'function'
 }
 
-function isEqualWithPick (a, b, eq, pick) {
+function isEqualWithPick (a, b, eq, tree) {
 
-    const propsTree = getPropsTree(pick)
-
-    return eqPick(a, b, eq, propsTree)
-}
-
-function eqPick (a, b, eq, tree) {
-
-    if (!isObject(a) || !isObject(b)) { return isEqualWith(a, b, eq) }
-
-    if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) { return false }
+    if (notObject(a) || notObject(b)) { return isEqualWith(a, b, eq) }
 
     for (let key in tree) {
 
@@ -179,7 +174,13 @@ function eqPick (a, b, eq, tree) {
             }
         }
 
-        if (!eqPick(a[key], b[key], eq, tree[key])) {
+        if ((hasOwnEnumerable(a, key) ^ hasOwnEnumerable(b, key)) === 1) {
+            return false
+        }
+
+        if (!hasOwnEnumerable(a, key)) { continue }
+
+        if (!isEqualWithPick(a[key], b[key], eq, tree[key])) {
             return false
         }
     }
@@ -187,45 +188,47 @@ function eqPick (a, b, eq, tree) {
     return true
 }
 
-function isEqualWithOmit (a, b, eq, omit) {
-
-    const propsTree = getPropsTree(omit)
-
-    return eqOmit(a, b, eq, propsTree)
-}
-
-function eqOmit (a, b, eq, tree) {
+function isEqualWithOmit (a, b, eq, tree) {
 
     if (!tree) { return isEqualWith(a, b, eq) }
 
-    if (!isObject(a) || !isObject(b)) { return isEqualWith(a, b, eq) }
+    if (notObject(a) || notObject(b)) { return isEqualWith(a, b, eq) }
 
-    if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) { return false }
+    for (let key in a) {
 
-    let aKeys = Object.keys(a).length
-    let bKeys = Object.keys(b).length
-
-    for (let k in a) {
-
-        if (tree[k] === true) {
-            aKeys--
-            if (hasOwn(b, k)) { bKeys-- }
+        if (tree[key] === true) {
             continue
         }
 
-        if ((hasOwn(a, k) ^ hasOwn(b, k)) === 1) { return false }
+        if ((hasOwn(a, key) ^ hasOwnEnumerable(b, key)) === 1) {
+            return false
+        }
 
-        if (!hasOwn(a, k)) { continue }
+        if (!hasOwn(a, key)) { continue }
 
-        if (!eqOmit(a[k], b[k], eq, tree[k])) { return false }
+        if (!isEqualWithOmit(a[key], b[key], eq, tree[key])) { return false }
     }
 
-    return aKeys === bKeys
+    return countNotOmittedKeys(a, tree) === countNotOmittedKeys(b, tree)
 }
 
-function strictEq (a, b) {
+function countNotOmittedKeys (obj, tree) {
 
-    if (!isObject(a) && !isObject(b)) {
+    let nKeys = Object.keys(obj).length
+
+    for (let key in tree) {
+
+        if (tree[key] !== true) { continue }
+
+        if (hasOwnEnumerable(obj, key)) { nKeys-- }
+    }
+
+    return nKeys
+}
+
+function strictCustomizer (a, b) {
+
+    if (notObject(a) && notObject(b)) {
 
         if (isNaN(a) && isNaN(b)) {
             return true
@@ -235,9 +238,9 @@ function strictEq (a, b) {
     }
 }
 
-function abstractEq (a, b) {
+function abstractCustomizer (a, b) {
 
-    if (!isObject(a) && !isObject(b)) {
+    if (notObject(a) && notObject(b)) {
 
         if (isNaN(a) && isNaN(b)) {
             return true
@@ -282,9 +285,13 @@ function getPropsTree (paths) {
 }
 
 function hasOwn (obj, key) {
-    return isObject(obj) && obj.hasOwnProperty(key)
+    return obj.hasOwnProperty(key)
 }
 
-function isObject (obj) {
-    return obj && typeof obj === 'object'
+function hasOwnEnumerable (obj, key) {
+    return hasOwn(obj, key) && obj.propertyIsEnumerable(key)
+}
+
+function notObject (obj) {
+    return typeof obj !== 'object' || !obj
 }

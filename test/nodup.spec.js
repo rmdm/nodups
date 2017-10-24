@@ -247,7 +247,7 @@ describe('nodup', function () {
         const result = nodup(q, { inplace: true })
 
         assert.equal(result, q)
-        assert.deepEqual(result, [ 1, 4, 2, 5, 3 ])
+        assert.deepStrictEqual(result, [ 1, 4, 2, 5, 3 ])
     })
 
     context('"inplace" option', function () {
@@ -445,7 +445,7 @@ describe('nodup', function () {
             ])
         })
 
-        it('respects arrays', function () {
+        it('merges objects with arrays', function () {
 
             const array = [
                 [ 1 ],
@@ -457,7 +457,6 @@ describe('nodup', function () {
 
             assert.deepStrictEqual(result, [
                 [ 1 ],
-                { 0: 1 },
             ])
         })
 
@@ -571,6 +570,53 @@ describe('nodup', function () {
                 { a: 4, b: 5, c: 6, d: { e: { f: 10 }, g: 10, h: 8 } },
             ])
         })
+
+        it('affects only own enumerable props, others are still ignored', function () {
+
+            const a = Object.create({ v0: 0 }, {
+                v1: { enumerable: true, value: 1 },
+                v2: { enumerable: false, value: 10 }
+            })
+
+            const b = { v1: 1 }
+
+            const c = Object.create({}, {
+                v1: { enumerable: true, value: 1 },
+                v2: { enumerable: false, value: 100 }
+            })
+
+            const d = Object.create({}, {
+                v1: { enumerable: true, value: 100 },
+                v2: { enumerable: false, value: 1 }
+            })
+
+            const e = Object.create({ v1: 1 }, {
+                v2: { enumerable: true, value: 1 }
+            })
+
+            const f = Object.create({}, {
+                v1: { enumerable: true, value: 1 },
+                v2: { enumerable: true, value: 100 }
+            })
+
+            const array = [ a, b, c, d, e, f ]
+
+            const result = nodup(array, { pick: 'v1' })
+
+            assert.deepStrictEqual(result, [ a, d, e ])
+        })
+
+        it('ignores not existing keys', function () {
+
+            const array = [
+                { a: 1 },
+                { a: 1 },
+            ]
+
+            const result = nodup(array, { pick: ['a', 'b.c' ]})
+
+            assert.deepStrictEqual(result, [ { a: 1 } ])
+        })
     })
 
     context('"omit" option', function () {
@@ -599,7 +645,7 @@ describe('nodup', function () {
             ])
         })
 
-        it('respects arrays', function () {
+        it('merges objects with arrays', function () {
 
             const array = [
                 [ 1, 2 ],
@@ -611,7 +657,6 @@ describe('nodup', function () {
 
             assert.deepStrictEqual(result, [
                 [ 1, 2 ],
-                { 0: 1, 1: 2 },
             ])
         })
 
@@ -710,6 +755,71 @@ describe('nodup', function () {
                 { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
                 { a: { b: { c: 2 } }, d: { e: { f: 10 }, g: 10, h: 8 } },
             ])
+        })
+
+        it('affects only own enumerable props, others are still used', function () {
+
+            const a = Object.create({ v0: 0 }, {
+                v1: { enumerable: true, value: 1 },
+                v2: { enumerable: false, value: 10 }
+            })
+
+            const b = { v1: 1 }
+
+            const c = Object.create({}, {
+                v1: { enumerable: true, value: 1 },
+                v2: { enumerable: false, value: 100 }
+            })
+
+            const d = Object.create({}, {
+                v1: { enumerable: true, value: 100 },
+                v2: { enumerable: false, value: 1 }
+            })
+
+            const e = Object.create({ v1: 1 }, {
+                v2: { enumerable: true, value: 1 }
+            })
+
+            const f = Object.create({}, {
+                v1: { enumerable: true, value: 1 },
+                v2: { enumerable: true, value: 100 }
+            })
+
+            const array = [ a, b, c, d, e, f ]
+
+            const result = nodup(array, { omit: [ 'v0', 'v2' ] })
+
+            assert.deepStrictEqual(result, [ a, d, e ])
+        })
+
+        it('ignores not existing keys', function () {
+
+            const array = [
+                { a: 1 },
+                { a: 1 },
+            ]
+
+            const result = nodup(array, { omit: [ 'b.c' ]})
+
+            assert.deepStrictEqual(result, [ { a: 1 } ])
+        })
+
+        it('ignores not own props', function () {
+
+            const array = [
+                Object.create({ a: 1 }, {
+                    b: { value: 2, enumerable: true },
+                    c: { value: 3, enumerable: true },
+                }),
+                Object.create({ a: 1 }, {
+                    b: { value: 2, enumerable: true },
+                    c: { value: 5, enumerable: true },
+                }),
+            ]
+
+            const result = nodup(array, { omit: 'c' })
+
+            assert.deepEqual(result, [ { b: 2, c: 3 } ])
         })
     })
 
