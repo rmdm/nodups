@@ -1,6 +1,6 @@
 {
   "name": "nodups",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "No dups, no doubts.",
   "main": "dst/nodups.js",
   "scripts": {
@@ -10,22 +10,25 @@
     "cover": "nyc npm run mocha",
     "lint": "eslint src",
     "compile": "babel --out-dir dst src",
-    "prepublish": "npm run compile",
+    "prepare": "npm run compile",
     "bench": "node benchmark.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rmdm/nodups.git"
   },
+  "files": [
+    "dst"
+  ],
   "keywords": [
     "nodups",
     "uniq",
     "unique",
+    "duplicates",
     "array",
     "set",
     "map",
-    "dups",
-    "duplicates"
+    "dups"
   ],
   "author": "rmdm",
   "license": "MIT",
