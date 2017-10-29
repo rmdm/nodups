@@ -5,6 +5,7 @@
   "main": "dst/nodups.js",
   "scripts": {
     "test": "npm run lint && npm run cover && npm run karma",
+    "ci": "npm run cover && npm run karma",
     "mocha": "cross-env NODE_ENV=test _mocha --require babel-register --recursive test",
     "karma": "karma start karma.conf.js",
     "cover": "nyc npm run mocha",
