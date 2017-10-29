@@ -156,14 +156,14 @@ nodup([ 1, 3, 2, 3 ], { onUnique: (uniq, dups, i, uniqs) => uniqs[i] = uniq * 2 
 ```
 
 And, of course, options can be intermixed!
-
+<!--
 Installation
 ============
 
 ```sh
 npm i nodups
 ```
-
+-->
 Options
 =======
 
