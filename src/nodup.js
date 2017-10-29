@@ -122,7 +122,7 @@ function getEquals (options) {
 
     const propsRestricted = arePropsRestricted(options)
 
-    const eq = options.strict === false ? abstractCustomizer : strictCustomizer
+    const eq = options.strict === false ? abstractCustomizer : null
 
     if (propsRestricted && options.pick != null) {
 
@@ -224,18 +224,6 @@ function countNotOmittedKeys (obj, tree) {
     }
 
     return nKeys
-}
-
-function strictCustomizer (a, b) {
-
-    if (notObject(a) && notObject(b)) {
-
-        if (isNaN(a) && isNaN(b)) {
-            return true
-        }
-
-        return a === b
-    }
 }
 
 function abstractCustomizer (a, b) {

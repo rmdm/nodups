@@ -881,5 +881,16 @@ describe('nodup', function () {
                 },
             ])
         })
+
+        it('may be used to change each item in resulting array', function () {
+
+            const array = [ 1, 3, 2, 3, 3 ]
+
+            const result = nodup(array, {
+                onUnique: (uniq, dups, i, uniqs) => uniqs[i] = uniq * 2
+            })
+
+            assert.deepStrictEqual(result, [ 2, 6, 4 ])
+        })
     })
 })

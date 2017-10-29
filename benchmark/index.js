@@ -12,7 +12,6 @@ const arrayUnique = require('array-uniq')
 const uniqs = require('uniqs')
 const dedupe = require('dedupe')
 
-
 console.log(uniq([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
 console.log(_uniq([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
 console.log(_uniq([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
