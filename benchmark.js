@@ -3,7 +3,7 @@
 const Benchmark = require('benchmark')
 const suite = new Benchmark.Suite()
 
-const nodup = require('../')
+const nodups = require('./')
 const uniq = require('uniq')
 const _uniq = require('lodash.uniq')
 const _uniqWith = require('lodash.uniqwith')
@@ -18,7 +18,7 @@ console.log(_uniq([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
 console.log(_uniqWith([5, 1, 1, 2, 3, 4, 2, 3, 5, 1], (a, b) => a === b))
 console.log(arrayUniq([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
 console.log(uniqs([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
-console.log(nodup([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
+console.log(nodups([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
 console.log(arrayUnique([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
 console.log(dedupe([5, 1, 1, 2, 3, 4, 2, 3, 5, 1]))
 
@@ -65,65 +65,65 @@ suite
 
     dedupe(arr)
 })
-.add('nodup', function() {
+.add('nodups', function() {
 
     var arr = [5, 1, 1, 2, 3, 4, 2, 3, 5, 1]
 
-    nodup(arr)
+    nodups(arr)
 })
-.add('nodup {sorted}', function () {
+.add('nodups {sorted}', function () {
 
     var arr = [1, 1, 1, 2, 2, 3, 3, 4, 5, 5]
 
-    nodup(arr, {sorted: true})
+    nodups(arr, {sorted: true})
 })
-.add('nodup {inplace}', function () {
+.add('nodups {inplace}', function () {
 
     var arr = [5, 1, 1, 2, 3, 4, 2, 3, 5, 1]
 
-    nodup(arr, {inplace: true})
+    nodups(arr, {inplace: true})
 })
-.add('nodup {compare ==}', function () {
+.add('nodups {compare ==}', function () {
 
     var arr = [5, 1, 1, 2, 3, 4, 2, 3, 5, 1]
 
-    nodup(arr, {compare: '=='})
+    nodups(arr, {compare: '=='})
 })
-.add('nodup {compare ===}', function () {
+.add('nodups {compare ===}', function () {
 
     var arr = [5, 1, 1, 2, 3, 4, 2, 3, 5, 1]
 
-    nodup(arr, {compare: '==='})
+    nodups(arr, {compare: '==='})
 })
-.add('nodup {compare fn()}', function () {
+.add('nodups {compare fn()}', function () {
 
     var arr = [5, 1, 1, 2, 3, 4, 2, 3, 5, 1]
 
-    nodup(arr, { compare: (a, b) => a === b })
+    nodups(arr, { compare: (a, b) => a === b })
 })
-.add('nodup {strict false}', function () {
+.add('nodups {strict false}', function () {
 
     var arr = [5, 1, 1, 2, 3, 4, 2, 3, 5, 1]
 
-    nodup(arr, { strict: false })
+    nodups(arr, { strict: false })
 })
-.add('nodup {onUnique}', function () {
+.add('nodups {onUnique}', function () {
 
     var arr = [5, 1, 1, 2, 3, 4, 2, 3, 5, 1]
 
-    nodup(arr, { onUnique: () => {} })
+    nodups(arr, { onUnique: () => {} })
 })
-.add('nodup {pick}', function () {
+.add('nodups {by}', function () {
 
     var arr = [{ a: 1, b: 2 }, { a: 1, b: 2 }, { a: 2, b: 2 }, { a: 2, b: 2 }, { a: 3, b: 2 }, { a: 5, b: 2 }]
 
-    nodup(arr, { pick: 'a' })
+    nodups(arr, { by: 'a' })
 })
-.add('nodup {omit}', function () {
+.add('nodups {skip}', function () {
 
     var arr = [{ a: 1, b: 2 }, { a: 1, b: 2 }, { a: 2, b: 2 }, { a: 2, b: 2 }, { a: 3, b: 2 }, { a: 5, b: 2 }]
 
-    nodup(arr, { omit: 'b' })
+    nodups(arr, { skip: 'b' })
 })
 .add('lodash.uniqWith', function() {
 

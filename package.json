@@ -1,8 +1,8 @@
 {
-  "name": "nodup",
+  "name": "nodups",
   "version": "0.1.0",
   "description": "No dups, no doubts.",
-  "main": "dst/nodup.js",
+  "main": "dst/nodups.js",
   "scripts": {
     "test": "npm run lint && npm run cover && npm run karma",
     "mocha": "cross-env NODE_ENV=test _mocha --require babel-register --recursive test",
@@ -11,14 +11,14 @@
     "lint": "eslint src",
     "compile": "babel --out-dir dst src",
     "prepublish": "npm run compile",
-    "bench": "node benchmark/index"
+    "bench": "node benchmark.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rmdm/nodup.git"
+    "url": "git+https://github.com/rmdm/nodups.git"
   },
   "keywords": [
-    "nodup",
+    "nodups",
     "uniq",
     "unique",
     "array",
@@ -30,9 +30,9 @@
   "author": "rmdm",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rmdm/nodup/issues"
+    "url": "https://github.com/rmdm/nodups/issues"
   },
-  "homepage": "https://github.com/rmdm/nodup#readme",
+  "homepage": "https://github.com/rmdm/nodups#readme",
   "devDependencies": {
     "array-uniq": "^1.0.3",
     "array-unique": "^0.3.2",

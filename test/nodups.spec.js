@@ -2,13 +2,13 @@
 
 import assert from 'assert-match'
 import { custom } from 'assert-match/matchers'
-import nodup from '../src/nodup'
+import nodups from '../src/nodups'
 
-describe('nodup', function () {
+describe('nodups', function () {
 
     it('returns empty array if nothing is passed', function () {
 
-        const result = nodup()
+        const result = nodups()
 
         assert.deepStrictEqual(result, [])
     })
@@ -17,14 +17,14 @@ describe('nodup', function () {
 
         const duplicates = []
 
-        const uniques = nodup(duplicates)
+        const uniques = nodups(duplicates)
 
         assert.notEqual(duplicates, uniques)
     })
 
     it('returns empty array if not an array is passed', function () {
 
-        const result = nodup('A string')
+        const result = nodups('A string')
 
         assert.deepStrictEqual(result, [])
     })
@@ -33,7 +33,7 @@ describe('nodup', function () {
 
         const array = [ 1, 2, 3, 4, 5 ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [ 1, 2, 3, 4, 5 ])
         assert.notEqual(result, array)
@@ -43,7 +43,7 @@ describe('nodup', function () {
 
         const array = [ 1, 4, 2, 5, 3, 4, 5, 1 ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [ 1, 4, 2, 5, 3])
     })
@@ -58,7 +58,7 @@ describe('nodup', function () {
             { a: 3 },
         ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [
             { a: 1 },
@@ -74,7 +74,7 @@ describe('nodup', function () {
             { a: '1' },
         ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [
             { a: 1 },
@@ -98,7 +98,7 @@ describe('nodup', function () {
 
         const array = [ a, b, c, d ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [ a, c, d ])
     })
@@ -123,7 +123,7 @@ describe('nodup', function () {
 
             const array = [ a, b ]
 
-            const result = nodup(array)
+            const result = nodups(array)
 
             assert.deepStrictEqual(result, [ a ])
     })
@@ -150,7 +150,7 @@ describe('nodup', function () {
 
         const array = [ a, b ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [ a, b ])
     })
@@ -180,7 +180,7 @@ describe('nodup', function () {
             NaN,
         ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [
             { a: 1 },
@@ -233,7 +233,7 @@ describe('nodup', function () {
 
         const array = [ a, b, c, d, e, f ]
 
-        const result = nodup(array)
+        const result = nodups(array)
 
         assert.deepStrictEqual(result, [ a, d, e, f ])
     })
@@ -244,7 +244,7 @@ describe('nodup', function () {
 
         const q = new Queue(1, 4, 2, 5, 3, 4, 5, 1)
 
-        const result = nodup(q, { inplace: true })
+        const result = nodups(q, { inplace: true })
 
         assert.equal(result, q)
         assert.deepStrictEqual(result, [ 1, 4, 2, 5, 3 ])
@@ -256,7 +256,7 @@ describe('nodup', function () {
 
             const duplicates = []
 
-            const uniques = nodup(duplicates, { inplace: true })
+            const uniques = nodups(duplicates, { inplace: true })
 
             assert.equal(duplicates, uniques)
         })
@@ -265,7 +265,7 @@ describe('nodup', function () {
 
             const array = [ 1, 2, 3, 4, 5 ]
 
-            const result = nodup(array, { inplace: true })
+            const result = nodups(array, { inplace: true })
 
             assert.deepStrictEqual(result, [ 1, 2, 3, 4, 5 ])
             assert.equal(result, array)
@@ -275,7 +275,7 @@ describe('nodup', function () {
 
             const array = [ 1, 4, 2, 5, 3, 4, 5, 1 ]
 
-            const result = nodup(array, { inplace: true })
+            const result = nodups(array, { inplace: true })
 
             assert.deepStrictEqual(result, [ 1, 4, 2, 5, 3 ])
             assert.equal(result, array)
@@ -288,7 +288,7 @@ describe('nodup', function () {
 
             const array = [ 1, 1, 2, 3, 4, 4, 5, 5, 5 ]
 
-            const result = nodup(array, { sorted: true })
+            const result = nodups(array, { sorted: true })
 
             assert.deepStrictEqual(result, [ 1, 2, 3, 4, 5 ])
         })
@@ -297,7 +297,7 @@ describe('nodup', function () {
 
             const array = [ 1, 1, 4, 2, 3, 4, 5, 5, 5 ]
 
-            const result = nodup(array, { sorted: true })
+            const result = nodups(array, { sorted: true })
 
             assert.deepStrictEqual(result, [ 1, 4, 2, 3, 4, 5 ])
         })
@@ -312,7 +312,7 @@ describe('nodup', function () {
                 { a: '1' },
             ]
 
-            const result = nodup(array, { strict: false })
+            const result = nodups(array, { strict: false })
 
             assert.deepStrictEqual(result, [
                 { a: 1 },
@@ -344,7 +344,7 @@ describe('nodup', function () {
                 NaN,
             ]
 
-            const result = nodup(array, { strict: false })
+            const result = nodups(array, { strict: false })
 
             assert.deepStrictEqual(result, [
                 { a: 1 },
@@ -376,7 +376,7 @@ describe('nodup', function () {
                 '1',
             ]
 
-            const result = nodup(array, { compare: '===' })
+            const result = nodups(array, { compare: '===' })
 
             assert.deepStrictEqual(result, [
                 { a: 1 },
@@ -398,7 +398,7 @@ describe('nodup', function () {
                 '1',
             ]
 
-            const result = nodup(array, { compare: '==' })
+            const result = nodups(array, { compare: '==' })
 
             assert.deepStrictEqual(result, [
                 { a: 1 },
@@ -414,15 +414,15 @@ describe('nodup', function () {
 
             const customCompare = (a, b) => ~~( a / 10 ) === ~~( b / 10 )
 
-            const result = nodup(array, { compare: customCompare })
+            const result = nodups(array, { compare: customCompare })
 
             assert.deepStrictEqual(result, [ 5, 11, 21, 45, 99 ])
         })
     })
 
-    context('"pick" option', function () {
+    context('"by" option', function () {
 
-        it('compares object elements only by "pick"ed properties', function () {
+        it('compares object elements only by "by"ed properties', function () {
 
             const array = [
                 { a: 5, b: 10 },
@@ -435,7 +435,7 @@ describe('nodup', function () {
                 7
             ]
 
-            const result = nodup(array, { pick: [ 'a' ] })
+            const result = nodups(array, { by: [ 'a' ] })
 
             assert.deepStrictEqual(result, [
                 { a: 5, b: 10 },
@@ -453,14 +453,14 @@ describe('nodup', function () {
                 [ 1, 2 ],
             ]
 
-            const result = nodup(array, { pick: [ '0' ] })
+            const result = nodups(array, { by: [ '0' ] })
 
             assert.deepStrictEqual(result, [
                 [ 1 ],
             ])
         })
 
-        it('capable of picking deep props', function () {
+        it('capable of checking deep props', function () {
 
             const array = [
                 { a: { b: { c: 10, d: 11 }}},
@@ -468,7 +468,7 @@ describe('nodup', function () {
                 { a: { b: { c: 10, d: 21 }}},
             ]
 
-            const result = nodup(array, { pick: [ 'a.b.c' ] })
+            const result = nodups(array, { by: [ 'a.b.c' ] })
 
             assert.deepStrictEqual(result, [
                 { a: { b: { c: 10, d: 11 }}},
@@ -476,14 +476,14 @@ describe('nodup', function () {
             ])
         })
 
-        it('ignores pick when it is undefined', function () {
+        it('ignores by when it is undefined', function () {
 
             const array = [
                 { undefined: 1, a: 5, b: 10 },
                 { undefined: 1, a: 5, b: 11 },
             ]
 
-            const result = nodup(array, { pick: undefined })
+            const result = nodups(array, { by: undefined })
 
             assert.deepStrictEqual(result, [
                 { undefined: 1, a: 5, b: 10 },
@@ -491,14 +491,14 @@ describe('nodup', function () {
             ])
         })
 
-        it('ignores pick when it is null', function () {
+        it('ignores by when it is null', function () {
 
             const array = [
                 { null: 1, a: 5, b: 10 },
                 { null: 1, a: 5, b: 11 },
             ]
 
-            const result = nodup(array, { pick: null })
+            const result = nodups(array, { by: null })
 
             assert.deepStrictEqual(result, [
                 { null: 1, a: 5, b: 10 },
@@ -506,21 +506,21 @@ describe('nodup', function () {
             ])
         })
 
-        it('understands number as pick', function () {
+        it('understands number as by', function () {
 
             const array = [
                 [ 1, 2 ],
                 [ 1 ],
             ]
 
-            const result = nodup(array, { pick: 0 })
+            const result = nodups(array, { by: 0 })
 
             assert.deepStrictEqual(result, [
                 [ 1, 2 ],
             ])
         })
 
-        it('understands boolean as pick', function () {
+        it('understands boolean as by', function () {
 
             const array = [
                 { false: true, true: false },
@@ -529,7 +529,7 @@ describe('nodup', function () {
                 { false: false, true: false },
             ]
 
-            const result = nodup(array, { pick: false })
+            const result = nodups(array, { by: false })
 
             assert.deepStrictEqual(result, [
                 { false: true, true: false },
@@ -537,7 +537,7 @@ describe('nodup', function () {
             ])
         })
 
-        it('picks by several deep paths', function () {
+        it('checks by several deep paths', function () {
 
             const array = [
                 { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -546,7 +546,7 @@ describe('nodup', function () {
                 { a: 0, b: 21, c: 31, d: { e: { f: 10 }, g: 11 } },
             ]
 
-            const result = nodup(array, { pick: [ 'd.e.f', 'd.g' ] })
+            const result = nodups(array, { by: [ 'd.e.f', 'd.g' ] })
 
             assert.deepStrictEqual(result, [
                 { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -554,7 +554,7 @@ describe('nodup', function () {
             ])
         })
 
-        it('picks by several deep paths each passed as an array', function () {
+        it('checks by several deep paths each passed as an array', function () {
 
             const array = [
                 { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -563,7 +563,7 @@ describe('nodup', function () {
                 { a: 0, b: 21, c: 31, d: { e: { f: 10 }, g: 11 } },
             ]
 
-            const result = nodup(array, { pick: [ [ 'd', 'e', 'f' ], [ 'd', 'g' ] ] })
+            const result = nodups(array, { by: [ [ 'd', 'e', 'f' ], [ 'd', 'g' ] ] })
 
             assert.deepStrictEqual(result, [
                 { a: 1, b: 2, c: 3, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -601,7 +601,7 @@ describe('nodup', function () {
 
             const array = [ a, b, c, d, e, f ]
 
-            const result = nodup(array, { pick: 'v1' })
+            const result = nodups(array, { by: 'v1' })
 
             assert.deepStrictEqual(result, [ a, d, e ])
         })
@@ -613,15 +613,15 @@ describe('nodup', function () {
                 { a: 1 },
             ]
 
-            const result = nodup(array, { pick: ['a', 'b.c' ]})
+            const result = nodups(array, { by: ['a', 'b.c' ]})
 
             assert.deepStrictEqual(result, [ { a: 1 } ])
         })
     })
 
-    context('"omit" option', function () {
+    context('"skip" option', function () {
 
-        it('compares object elements skipping "omit"ed properties', function () {
+        it('compares object elements skipping "skip"ed properties', function () {
 
             const array = [
                 { a: 5, b: 10 },
@@ -634,7 +634,7 @@ describe('nodup', function () {
                 7
             ]
 
-            const result = nodup(array, { omit: [ 'b' ] })
+            const result = nodups(array, { skip: [ 'b' ] })
 
             assert.deepStrictEqual(result, [
                 { a: 5, b: 10 },
@@ -653,14 +653,14 @@ describe('nodup', function () {
                 [ 1, 2 ],
             ]
 
-            const result = nodup(array, { omit: [ '1' ] })
+            const result = nodups(array, { skip: [ '1' ] })
 
             assert.deepStrictEqual(result, [
                 [ 1, 2 ],
             ])
         })
 
-        it('capable of omitting deep props', function () {
+        it('capable of skipping deep props', function () {
 
             const array = [
                 { a: { b: { c: 10, d: 11 }}},
@@ -668,7 +668,7 @@ describe('nodup', function () {
                 { a: { b: { c: 10, d: 21 }}},
             ]
 
-            const result = nodup(array, { omit: [ 'a.b.d' ] })
+            const result = nodups(array, { skip: [ 'a.b.d' ] })
 
             assert.deepStrictEqual(result, [
                 { a: { b: { c: 10, d: 11 }}},
@@ -676,14 +676,14 @@ describe('nodup', function () {
             ])
         })
 
-        it('ignores omit when it is undefined', function () {
+        it('ignores skip when it is undefined', function () {
 
             const array = [
                 { undefined: 1, a: 5, b: 10 },
                 { undefined: 1, a: 5, b: 11 },
             ]
 
-            const result = nodup(array, { omit: undefined })
+            const result = nodups(array, { skip: undefined })
 
             assert.deepStrictEqual(result, [
                 { undefined: 1, a: 5, b: 10 },
@@ -691,14 +691,14 @@ describe('nodup', function () {
             ])
         })
 
-        it('ignores omit when it is null', function () {
+        it('ignores skip when it is null', function () {
 
             const array = [
                 { undefined: 1, a: 5, b: 10 },
                 { undefined: 1, a: 5, b: 11 },
             ]
 
-            const result = nodup(array, { omit: null })
+            const result = nodups(array, { skip: null })
 
             assert.deepStrictEqual(result, [
                 { undefined: 1, a: 5, b: 10 },
@@ -706,7 +706,7 @@ describe('nodup', function () {
             ])
         })
 
-        it('understands boolean as omit', function () {
+        it('understands boolean as skip', function () {
 
             const array = [
                 { false: true, true: false },
@@ -715,7 +715,7 @@ describe('nodup', function () {
                 { false: false, true: false },
             ]
 
-            const result = nodup(array, { omit: true })
+            const result = nodups(array, { skip: true })
 
             assert.deepStrictEqual(result, [
                 { false: true, true: false },
@@ -723,7 +723,7 @@ describe('nodup', function () {
             ])
         })
 
-        it('omits by several deep paths', function () {
+        it('skips by several deep paths', function () {
 
             const array = [
                 { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -732,7 +732,7 @@ describe('nodup', function () {
                 { a: { b: { c: 4 } }, d: { e: { f: 10 }, g: 11 } },
             ]
 
-            const result = nodup(array, { omit: [ 'a.b.c', 'd.h' ] })
+            const result = nodups(array, { skip: [ 'a.b.c', 'd.h' ] })
 
             assert.deepStrictEqual(result, [
                 { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -740,7 +740,7 @@ describe('nodup', function () {
             ])
         })
 
-        it('omits by several deep paths each passed as an array', function () {
+        it('skips by several deep paths each passed as an array', function () {
 
             const array = [
                 { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -749,7 +749,7 @@ describe('nodup', function () {
                 { a: { b: { c: 4 } }, d: { e: { f: 10 }, g: 11 } },
             ]
 
-            const result = nodup(array, { omit: [ [ 'a', 'b', 'c' ], [ 'd', 'h' ] ] })
+            const result = nodups(array, { skip: [ [ 'a', 'b', 'c' ], [ 'd', 'h' ] ] })
 
             assert.deepStrictEqual(result, [
                 { a: { b: { c: 1 } }, d: { e: { f: 10 }, g: 11, h: 8 } },
@@ -787,7 +787,7 @@ describe('nodup', function () {
 
             const array = [ a, b, c, d, e, f ]
 
-            const result = nodup(array, { omit: [ 'v0', 'v2' ] })
+            const result = nodups(array, { skip: [ 'v0', 'v2' ] })
 
             assert.deepStrictEqual(result, [ a, d, e ])
         })
@@ -799,7 +799,7 @@ describe('nodup', function () {
                 { a: 1 },
             ]
 
-            const result = nodup(array, { omit: [ 'b.c' ]})
+            const result = nodups(array, { skip: [ 'b.c' ]})
 
             assert.deepStrictEqual(result, [ { a: 1 } ])
         })
@@ -817,7 +817,7 @@ describe('nodup', function () {
                 }),
             ]
 
-            const result = nodup(array, { omit: 'c' })
+            const result = nodups(array, { skip: 'c' })
 
             assert.deepEqual(result, [ { b: 2, c: 3 } ])
         })
@@ -840,8 +840,8 @@ describe('nodup', function () {
 
             const calls = []
 
-            nodup(array, {
-                pick: [ 'a' ],
+            nodups(array, {
+                by: [ 'a' ],
                 onUnique: function (unique, duplicates, index, array) {
                     calls.push({ unique, duplicates, index, array })
                 },
@@ -886,7 +886,7 @@ describe('nodup', function () {
 
             const array = [ 1, 3, 2, 3, 3 ]
 
-            const result = nodup(array, {
+            const result = nodups(array, {
                 onUnique: (uniq, dups, i, uniqs) => uniqs[i] = uniq * 2
             })
 

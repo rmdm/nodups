@@ -8,8 +8,8 @@ const isEqualWith = require('lodash.isequalwith')
  * @param {Boolean} [options.inplace = false]
  * @param {Boolean} [options.strict = true]
  * @param {String|Function} [options.compare]
- * @param {String|Array(String)|Array(Array(String))} [options.pick]
- * @param {String|Array(String)|Array(Array(String))} [options.omit]
+ * @param {String|Array(String)|Array(Array(String))} [options.by]
+ * @param {String|Array(String)|Array(Array(String))} [options.skip]
  * @param {Function} [options.onUnique]
  */
 
@@ -124,20 +124,20 @@ function getEquals (options) {
 
     const eq = options.strict === false ? abstractCustomizer : null
 
-    if (propsRestricted && options.pick != null) {
+    if (propsRestricted && options.by != null) {
 
-        const propsTree = getPropsTree(options.pick)
+        const propsTree = getPropsTree(options.by)
 
         return function (a, b) {
-            return isEqualWithPick(a, b, eq, propsTree)
+            return isEqualBy(a, b, eq, propsTree)
         }
 
-    } else if (propsRestricted && options.omit != null) {
+    } else if (propsRestricted && options.skip != null) {
 
-        const propsTree = getPropsTree(options.omit)
+        const propsTree = getPropsTree(options.skip)
 
         return function (a, b) {
-            return isEqualWithOmit(a, b, eq, propsTree)
+            return isEqualSkip(a, b, eq, propsTree)
         }
 
     } else {
@@ -157,12 +157,12 @@ function strictEquals (a, b) {
 }
 
 function arePropsRestricted (options) {
-    return ( options.pick != null || options.omit != null ) &&
+    return ( options.by != null || options.skip != null ) &&
         options.compare !== '==' && options.compare !== '===' &&
         typeof options.compare !== 'function'
 }
 
-function isEqualWithPick (a, b, eq, tree) {
+function isEqualBy (a, b, eq, tree) {
 
     if (notObject(a) || notObject(b)) { return isEqualWith(a, b, eq) }
 
@@ -180,7 +180,7 @@ function isEqualWithPick (a, b, eq, tree) {
 
         if (!hasOwnEnumerable(a, key)) { continue }
 
-        if (!isEqualWithPick(a[key], b[key], eq, tree[key])) {
+        if (!isEqualBy(a[key], b[key], eq, tree[key])) {
             return false
         }
     }
@@ -188,7 +188,7 @@ function isEqualWithPick (a, b, eq, tree) {
     return true
 }
 
-function isEqualWithOmit (a, b, eq, tree) {
+function isEqualSkip (a, b, eq, tree) {
 
     if (!tree) { return isEqualWith(a, b, eq) }
 
@@ -206,13 +206,13 @@ function isEqualWithOmit (a, b, eq, tree) {
 
         if (!hasOwn(a, key)) { continue }
 
-        if (!isEqualWithOmit(a[key], b[key], eq, tree[key])) { return false }
+        if (!isEqualSkip(a[key], b[key], eq, tree[key])) { return false }
     }
 
-    return countNotOmittedKeys(a, tree) === countNotOmittedKeys(b, tree)
+    return countNotSkippedKeys(a, tree) === countNotSkippedKeys(b, tree)
 }
 
-function countNotOmittedKeys (obj, tree) {
+function countNotSkippedKeys (obj, tree) {
 
     let nKeys = Object.keys(obj).length
 
