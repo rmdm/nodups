@@ -26,7 +26,7 @@ nodups(array, { inplace: true })
 // array now contains [ 1, { a: 5 }, 2 ]
 ```
 
-**nodups** compares objects values in depth and only checks own enumerable properties of the objects. Primitive properties and values are compared with [`SameValueZero`](https://www.ecma-international.org/ecma-262/8.0/#sec-samevaluezero) algorithm - that means **nodups** threats `NaN` values as equal to each other by default:
+**nodups** compares objects values in depth and only checks own enumerable properties of the objects. Primitive properties and values are compared with [`SameValueZero`](https://www.ecma-international.org/ecma-262/8.0/#sec-samevaluezero) algorithm - that means **nodups** treats `NaN` values as equal to each other by default:
 
 ```javascript
 nodups([ NaN, 0, NaN, NaN ])
@@ -174,7 +174,7 @@ To summarize [usage](#usage) section here is more formal description of **nodups
 
 - **`inplace`** (Boolean) - drop duplicates from original array.
 - **`compare`** (Function(a, b)|'==='|'==') - custom comparison function of any two array elements or string shorthand.
-- **`strict`** (Boolean) - compare objects' primitive properties with sligtly changed `==` operation (the only difference is that `NaN` values are threated as equal).
+- **`strict`** (Boolean) - compare objects' primitive properties with sligtly changed `==` operation (the only difference is that `NaN` values are treated as equal).
 - **`sorted`** (Boolean) - tells `nodups` that array is sorted and performance optimization can be applied.
 - **`by`** (String|Array) - compare objects only by own enumerable properties specified by the paths.
 - **`skip`** (String|Array) - compare object only by own enumerable properties execept ones specified by the paths.
