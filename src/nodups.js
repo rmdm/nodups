@@ -13,7 +13,7 @@ const isEqualWith = require('lodash.isequalwith')
  * @param {Function} [options.onUnique]
  */
 
-export default function (array, options = {}) {
+export default function nodups (array, options = {}) {
 
     if (!Array.isArray(array)) {
         return []
@@ -35,6 +35,13 @@ export default function (array, options = {}) {
     }
 
     return uniques
+}
+
+nodups.polyfill = function () {
+    Array.prototype.nodups = function (options) {
+        return nodups(this, options)
+    }
+    return nodups
 }
 
 function getUniques (array, options) {

@@ -167,6 +167,39 @@ Installation
 npm i nodups
 ```
 
+Polyfill
+========
+
+If you would like **nodups** method to be available on array instances like that:
+
+```javascript
+[ 1, 1, 1 ].nodups() // result is [ 1 ]
+```
+
+than you can `polyfill` it:
+
+```javascript
+require('nodups').polyfill()
+// or
+require('nodups/polyfill')
+// or
+import nodups from 'nodups/polyfill'
+```
+
+In particular, it is handy in case of method chaining:
+
+```javascript
+array
+    .nodups()
+    .map(x => x.category)
+    .nodups()
+    .filter(x => x.startsWith('_'))
+    .map(x => getType(x))
+    .nodups()
+```
+
+_Credits to **@zlumer** for his proposal on the polyfill and example._
+
 Options
 =======
 
@@ -174,7 +207,7 @@ To summarize [usage](#usage) section here is more formal description of **nodups
 
 - **`inplace`** (Boolean) - drop duplicates from original array.
 - **`compare`** (Function(a, b)|'==='|'==') - custom comparison function of any two array elements or string shorthand.
-- **`strict`** (Boolean) - compare objects' primitive properties with sligtly changed `==` operation (the only difference is that `NaN` values are treated as equal).
+- **`strict`** (Boolean) - `true` by default. Compare objects' primitive properties with sligtly changed `==` operation (the only difference is that `NaN` values are treated as equal).
 - **`sorted`** (Boolean) - tells `nodups` that array is sorted and performance optimization can be applied.
 - **`by`** (String|Array) - compare objects only by own enumerable properties specified by the paths.
 - **`skip`** (String|Array) - compare object only by own enumerable properties execept ones specified by the paths.
