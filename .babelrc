@@ -1,6 +1,6 @@
 {
-    "presets": [ "es2015" ],
-    "plugins": [ "transform-runtime", "add-module-exports" ],
+    "presets": [ "@babel/preset-env" ],
+    "plugins": [ "@babel/transform-runtime", "add-module-exports" ],
     "env": {
         "test": {
             "plugins": [ "istanbul" ]

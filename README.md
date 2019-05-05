@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/rmdm/nodups.svg?branch=master)](https://travis-ci.org/rmdm/nodups)
-[![Coverage Status](https://coveralls.io/repos/github/rmdm/nodups/badge.svg?branch=master)](https://coveralls.io/github/rmdm/nodups?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/rmdm/nodups/badge.svg?branch=master)](https://coveralls.io/github/rmdm/nodups?branch=master) [![Greenkeeper badge](https://badges.greenkeeper.io/rmdm/nodups.svg)](https://greenkeeper.io/)
 
 nodups
 =====
