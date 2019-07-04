@@ -44,7 +44,7 @@
     "@babel/plugin-transform-runtime": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
     "@babel/register": "^7.4.4",
-    "@babel/runtime-corejs3": "^7.4.4",
+    "@babel/runtime-corejs3": "^7.5.0",
     "array-uniq": "^2.1.0",
     "array-unique": "^0.3.2",
     "assert-match": "^1.1.1",
