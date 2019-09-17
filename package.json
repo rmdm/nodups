@@ -54,7 +54,7 @@
     "benchmark": "^2.1.4",
     "browserify": "^16.2.3",
     "coveralls": "^3.0.3",
-    "cross-env": "^5.0.5",
+    "cross-env": "^6.0.0",
     "dedupe": "^3.0.1",
     "eslint": "^5.16.0",
     "karma": "^4.1.0",
