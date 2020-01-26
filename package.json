@@ -63,7 +63,7 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "lodash.uniq": "^4.5.0",
     "lodash.uniqwith": "^4.5.0",
-    "mocha": "^6.1.4",
+    "mocha": "^7.0.1",
     "nyc": "^14.0.0",
     "uniq": "^1.0.1",
     "uniqs": "^2.0.0"
